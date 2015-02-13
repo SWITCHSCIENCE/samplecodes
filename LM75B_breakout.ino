@@ -47,8 +47,6 @@ void setup()
  
 void loop()
 {
-  char str[20] = {
-    0    };
   signed int temp_data = 0;                    //LM75Bの温度レジスタの値用変数
   double temp = 0.0;                           //温度用変数
   Wire.requestFrom(LM75B_address,2);           
