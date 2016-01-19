@@ -1,0 +1,55 @@
+/*************************************
+**  PCA9626B.h                    **
+**                                  **
+**  Created : 2015/10/30 11:48:00   **
+**  Author  : O.aoki                **
+**************************************/
+
+/*---------------------------------------------------
+    Constant value
+*/
+const int PCA9626B_addr = 0x80;        // define the I2C Address
+
+/*---------------------------------------------------
+    PCA9626B Register Address
+*/
+//  Control registers
+#define MODE1                   0x00
+#define MODE2                   0x01
+#define PPWM0                   0x02
+#define PPWM1                   0x03
+#define PPWM2                   0x04
+#define PPWM3                   0x05
+#define PPWM4                   0x06
+#define PPWM5                   0x07
+#define PPWM6                   0x08
+#define PPWM7                   0x09
+#define PPWM8                   0x0A
+#define PPWM9                   0x0B
+#define PPWM10                  0x0C
+#define PPWM11                  0x0D
+#define PPWM12                  0x0E
+#define PPWM13                  0x0F
+#define PPWM14                  0x10
+#define PPWM15                  0x11
+#define PPWM16                  0x12
+#define PPWM17                  0x13
+#define PPWM18                  0x14
+#define PPWM19                  0x15
+#define PPWM20                  0x16
+#define PPWM21                  0x17
+#define PPWM22                  0x18
+#define PPWM23                  0x19
+#define GRPPWM                  0x1A
+#define GRPFREQ                 0x1B
+#define CHASE                   0x1C
+#define LEDOUT0                 0x1D
+#define LEDOUT1                 0x1E
+#define LEDOUT2                 0x1F
+#define LEDOUT3                 0x20
+#define LEDOUT4                 0x21
+#define LEDOUT5                 0x22
+#define SUBADR1                 0x23
+#define SUBADR2                 0x24
+#define SUBADR3                 0x25
+#define ALLCALLADR              0x26
