@@ -1,10 +1,10 @@
- /*******************************************************************************
+/*******************************************************************************
   // SWITCHSCIENCE wiki -- http://trac.switch-science.com/
-  // PCA9266DR Arduino Sample
+  // PCA9622DR Arduino Sample
   *******************************************************************************/
   #include <Wire.h>
 
-  #define PCA9266DR_ADDR 0x70 // in 7bit for Arduino
+  #define PCA9622DR_ADDR 0x70 // in 7bit for Arduino
 
   #define MODE1 0x00
   #define MODE2 0x01
@@ -57,7 +57,7 @@
     // 初期化
     initdata[0] = B10000001;// 4bit目のデフォルトはSLEEP=1
     initdata[1] = B00100101;// 5bit目のDMBLNK=1で全体点滅を有効
-    datasend(PCA9266DR_ADDR, MODE1 | AI_ALLEN, initdata, 2); // 全領域インクリメント
+    datasend(PCA9622DR_ADDR, MODE1 | AI_ALLEN, initdata, 2); // 全領域インクリメント
 
     // 調光用デューティー比の設定
     ledPWM[4] = 0x00;
@@ -74,13 +74,13 @@
     ledPWM[13] = 0x70;
     ledPWM[14] = 0x30;
     ledPWM[15] = 0x10;
-    datasend(PCA9266DR_ADDR, PWM0 | AI_ALLEN,ledPWM,16);
+    datasend(PCA9622DR_ADDR, PWM0 | AI_ALLEN,ledPWM,16);
 
     // 全体点滅の設定
     int grp_pwm = 0x80; // 5:5
-    datasend(PCA9266DR_ADDR, GRPPWM,&grp_pwm,1);
+    datasend(PCA9622DR_ADDR, GRPPWM,&grp_pwm,1);
     int grp_freq = 0x2F; // (0x2F+1)/24 秒周期 = 2秒周期
-    datasend(PCA9266DR_ADDR, GRPFREQ,&grp_freq,1);
+    datasend(PCA9622DR_ADDR, GRPFREQ,&grp_freq,1);
 
 
     // LED出力設定
@@ -88,14 +88,14 @@
     ledOut[1] = B10101010;  // LEDは個別調光に影響される
     ledOut[2] = B10101010;
     ledOut[3] = B11111111;  // LEDは個別調光と全体の点滅(PWM)に影響される
-    datasend(PCA9266DR_ADDR,LEDOUT0 | AI_ALLEN,ledOut,4);
+    datasend(PCA9622DR_ADDR,LEDOUT0 | AI_ALLEN,ledOut,4);
 
     Serial.println("LED turned ON, PWM, etc...");
   }
 
   void loop()
   {
-    // 点滅機能はPCA9622内臓機能なのでloop部分は何もせずとも点滅します
+    // 点滅機能はPCA9622内蔵機能なのでloop部分は何もせずとも点滅します
   }
 
   //送信用関数(デバイスアドレス,レジスタアドレス,&送信用データ,送信データ数)
