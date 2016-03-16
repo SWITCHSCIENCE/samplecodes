@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ESP-WROOM-02 WiFi Logger</title>
+  </head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    .x.axis path {
+      display: none;
+    }
+
+    .line_t {
+      fill: none;
+      stroke: #FBC02D;
+      stroke-width: 1.5px;
+    }
+    .line_p {
+      fill: none;
+      stroke: #0277BD;
+      stroke-width: 1.5px;
+    }
+    .line_h {
+      fill: none;
+      stroke: #c62828;
+      stroke-width: 1.5px;
+    }
+  </style>
+  <body>
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <script>
+    // 日時変換指定
+    var formatDate = d3.time.format("%m/%d-%H:%M");
+
+    var filename = "sampledata.csv";
+    function showGraph(filename){
+      // 描画領域の設定
+      var margin = {top: 20, right: 20, bottom: 30, left: 50},
+      width = 960 - margin.left - margin.right,
+      height = 500 - margin.top - margin.bottom;
+    // スケールの設定
+    var x = d3.time.scale()
+        .range([0, width]);
+
+    var y = d3.scale.linear()
+        .range([height/3, 0]);
+
+    // 軸の設定
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom");
+    var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left");
+
+
+    var line_t = d3.svg.line()
+        .x(function(d) { return x(d.date); })
+        .y(function(d) { return y(d.temperature); });
+    var line_p = d3.svg.line()
+        .x(function(d) { return x(d.date); })
+        .y(function(d) { return y(d.pressure); });
+    var line_h = d3.svg.line()
+        .x(function(d) { return x(d.date); })
+        .y(function(d) { return y(d.humidity); });
+
+
+
+    // svgの定義
+    var svg_t = d3.select("body").append("svg").attr("id","temperature")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height/3 + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+    var svg_p = d3.select("body").append("svg").attr("id","pressure")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height/3 + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+    var svg_h = d3.select("body").append("svg").attr("id","humidity")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height/3 + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left  + "," + margin.top+ ")")
+
+    d3.text(filename, function(error, text) {
+      // ラベル無しデータをjsonに変換
+      var data = d3.csv.parseRows(text, function(d){
+          var obj = {date:d[0], temperature:d[1],pressure:d[2],humidity:d[3]};
+          return type(obj);
+      });
+      console.log(data);
+      if (error) throw error;
+
+      x.domain(d3.extent(data, function(d) { return d.date; }));
+      //温度の表示
+        y.domain(d3.extent(data, function(d) { return d.temperature; }));
+        // x軸を表示
+        svg_t.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height/3 + ")")
+            .call(xAxis);
+        // y軸を表示
+        svg_t.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+          .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("温度(℃)");
+        svg_t.append("path")
+                .datum(data)
+                .attr("class", "line_t")
+                .attr("d", line_t);
+      //気圧の表示
+        y.domain(d3.extent(data, function(d) { return d.pressure; }));
+        // x軸を表示
+        svg_p.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height/3 + ")")
+            .call(xAxis);
+        // y軸を表示
+        svg_p.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+          .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("気圧(Pa)");
+        svg_p.append("path")
+                .datum(data)
+                .attr("class", "line_p")
+                .attr("d", line_p);
+      //湿度の表示
+        y.domain(d3.extent(data, function(d) { return d.humidity; }));
+        // x軸を表示
+        svg_h.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height/3 + ")")
+            .call(xAxis);
+        // y軸を表示
+        svg_h.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+          .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("湿度(%)");
+        svg_h.append("path")
+                .datum(data)
+                .attr("class", "line_h")
+                .attr("d", line_h);
+    });
+    }
+    function type(d) {
+      d.date = formatDate.parse(d.date);
+      d.temperature = +d.temperature;
+      d.humidity = +d.humidity;
+      d.pressure = +d.pressure;
+      return d;
+    }
+
+    function changeFile()
+    {
+      var name = window.prompt("拡張子を除いたファイル名を入力してください。\nフォーマットはYYYY-MMです。(例:2016-02)")
+      if(name != null){
+        d3.selectAll("svg").remove();
+        name = name + ".csv";
+        document.getElementById("fileName").innerHTML=name;
+        showGraph(name);
+      }
+    }
+
+    </script>
+    <div id="fileName">sample.csv</div>
+    <p><input type="button" value="ファイル名変更" onClick="changeFile()"></p>
+  </body>
+</html>
