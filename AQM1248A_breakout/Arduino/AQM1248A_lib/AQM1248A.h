@@ -1,3 +1,6 @@
+#ifndef AQM1248A_H
+#define AQM1248A_H
+
 #include "Arduino.h"
 #include <SPI.h>
 #include "Adafruit_GFX.h"
@@ -15,3 +18,5 @@ class AQM1248A : public Adafruit_GFX
         int8_t _CS,_PWR,_RS;
         void initLCD();
 };
+
+#endif AQM1248A_H
