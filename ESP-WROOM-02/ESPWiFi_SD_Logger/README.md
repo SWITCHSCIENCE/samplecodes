@@ -27,3 +27,7 @@ ESP-WROOM-02にSDカードおよびBME280(温度,気温,湿度センサ)を接�
  1. [スイッチサイエンスマガジン](http://mag.switch-science.com/)
 
  2. [ESP-WROOM-02 開発ボード](https://www.switch-science.com/catalog/2500/)
+
+## Licence
+
+GNU Lesser General Public License Version 2.1
