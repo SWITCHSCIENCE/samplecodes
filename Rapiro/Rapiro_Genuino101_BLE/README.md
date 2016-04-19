@@ -1,6 +1,6 @@
 Genuino101を使ってBLE経由でRapiroを制御してみる
 ====
-Genuino101 の Bluetooth Low Energy 機能にスマートフォンなどからアクセスしてSerialにRapiroのコマンドを流す
+Genuino101 の Bluetooth Low Energy 機能にスマートフォンなどからアクセスしてSerialに二足歩行ロボットRapiro用の制御コマンドを流す
 
 使い方
 ----
@@ -11,7 +11,8 @@ Genuino101 の Bluetooth Low Energy 機能にスマートフォンなどから�
 
  + VCC,GND,TX,RX <-> VCC,GND,RX,TX
 
-+ スマートフォンなどから接続する
++ スマートフォンなどからGenuino101に接続する
+ + Bluetoothデバイス名は`Genuino101-(数値)`や`Rapiro`となっているはずです
 
 + `UART Service service 1 tx`キャラクタリスティックに書き込んだ値によってRapiroが動作する
  + (例)`S`を送るとRapiroに`#M0`が送られる
