@@ -51,7 +51,7 @@ void loop() {
 
   Serial.print("Door State:");
   if(door_state == 0){
-    Serial.println("Closed");
+    Serial.println("Close");
   }
   else{
     Serial.println("Open");
@@ -70,14 +70,14 @@ void loop() {
   
   // We now create a URI for the request
   String url = "/cgi-bin/door.py/?";
-  if(door_state == 0){
+  if(door_state == 0){                        
     url += "state=close";
   }
   else{
     url += "state=open";
   }
-    url += "&bat=";
-    url += system_adc_read();
+    url += "&batt=";
+    url += system_adc_read();               //バッテリーの電圧1/10
 
   
   Serial.print("Requesting URL: ");
@@ -93,10 +93,10 @@ void loop() {
   Serial.println("closing connection");
 
   if(door_state == 0){
-    ESP.deepSleep(5*60*1000*1000, WAKE_RF_DEFAULT);
+    ESP.deepSleep(5*60*1000*1000, WAKE_RF_DEFAULT);         //ドアが閉じている間は5分毎に起動
   }
   else{
-    ESP.deepSleep(60*60*1000*1000, WAKE_RF_DEFAULT);
+    ESP.deepSleep(60*60*1000*1000, WAKE_RF_DEFAULT);        //ドアが開いている間は1時間毎に起動
   }
   delay(1000);
   
