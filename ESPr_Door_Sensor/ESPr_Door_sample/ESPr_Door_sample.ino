@@ -3,7 +3,7 @@
 extern "C" {
   #include "user_interface.h"
 }
-
+#define CLOSE 0
 const char* ssid     = "ssid";
 const char* password = "password";
 
@@ -50,7 +50,7 @@ void loop() {
   door_state = digitalRead(reed_sw);
 
   Serial.print("Door State:");
-  if(door_state == 0){
+  if(door_state == CLOSE){
     Serial.println("Close");
   }
   else{
@@ -92,11 +92,13 @@ void loop() {
   Serial.println();
   Serial.println("closing connection");
 
-  if(door_state == 0){
-    ESP.deepSleep(5*60*1000*1000, WAKE_RF_DEFAULT);         //ドアが閉じている間は5分毎に起動
+  if(door_state == CLOSE){
+    Serial.println("DEEP SLEEP 60s");
+    ESP.deepSleep(60 * 1000 * 1000, WAKE_RF_DEFAULT);         //ドアが閉じている間は1分毎に起動
   }
   else{
-    ESP.deepSleep(60*60*1000*1000, WAKE_RF_DEFAULT);        //ドアが開いている間は1時間毎に起動
+    Serial.println("DEEP SLEEP");
+    ESP.deepSleep(0, WAKE_RF_DEFAULT);        //ドアが開いている間はドアが閉じるまで待機
   }
   delay(1000);
   
