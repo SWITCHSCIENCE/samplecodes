@@ -69,15 +69,14 @@ void loop() {
   }
   
   // We now create a URI for the request
-  String url = "/cgi-bin/door.py/?";
+  String url;
   if(door_state == 0){                        
-    url += "state=close";
+    url += "/close/";
   }
   else{
-    url += "state=open";
+    url += "/open/";
   }
-    url += "&batt=";
-    url += system_adc_read();               //バッテリーの電圧1/10
+  url += system_adc_read();               //バッテリーの電圧1/10
 
   
   Serial.print("Requesting URL: ");
