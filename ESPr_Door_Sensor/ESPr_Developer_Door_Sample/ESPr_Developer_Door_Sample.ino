@@ -61,7 +61,7 @@ void loop() {
   batt = (req.substring(index - 4, index - 1)).toInt() / 1023.0 * 10;
   //Serial.println(req);
   client.flush();
-  if (batt < 3.3) {                             //バッテリー残量が3.3V以下なら
+  if (batt < 3.3 && batt != 0) {                //バッテリー残量が3.3V以下なら （0の場合はエラー）
     digitalWrite(batt_led, 1);                  //LEDをつける。
   }
   else {
