@@ -93,7 +93,8 @@ void loop() {
 
   if(door_state == CLOSE){
     Serial.println("DEEP SLEEP 60s");
-    ESP.deepSleep(60 * 1000 * 1000, WAKE_RF_DEFAULT);         //ドアが閉じている間は1分毎に起動
+    //ESP.deepSleep(60 * 1000 * 1000, WAKE_RF_DEFAULT);         //ドアが閉じている間は1分毎に起動
+    ESP.deepSleep(0, WAKE_RF_DEFAULT);                          //ドアが閉じている間はドアが開くまで待機
   }
   else{
     Serial.println("DEEP SLEEP");
