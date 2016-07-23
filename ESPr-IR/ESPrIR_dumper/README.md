@@ -9,7 +9,7 @@ ESPr IR 赤外線リモコン データ受信機
 
  + シリアルモニタに表示されるdumpedData[]をコピーする
    + (例)
-      ```c
+      ```
       unsigned int dumpedData[4] = {
         3400,1600,450,1200
       };
