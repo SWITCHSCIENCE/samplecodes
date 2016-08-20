@@ -21,7 +21,7 @@ void setup()
   Wire.begin();
   bme280.setMode(i2c_addr, osrs_t, osrs_p, osrs_h, bme280mode, t_sb, filter, spi3w_en);
 
-  bme280.readTrim(i2c_addr);
+  bme280.readTrim();
 }
 
 
@@ -29,7 +29,7 @@ void loop()
 {
   double temp_act, press_act, hum_act; //最終的に表示される値を入れる変数
 
-  bme280.readData(i2c_addr, &temp_act, &press_act, &hum_act);
+  bme280.readData(&temp_act, &press_act, &hum_act);
 
   Serial.print("TEMP : ");
   Serial.print(temp_act);
