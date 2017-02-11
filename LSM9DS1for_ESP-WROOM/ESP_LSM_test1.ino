@@ -9,9 +9,9 @@
 //-----------------------------------------------------------------
 
 #include <Arduino.h>
-#include <ESP8266WiFi.h>　　　　　　　　　　　　//https://github.com/esp8266/Arduino
-#include <Wire.h>                               //I2Cライブラリ
-#include <SparkFunLSM9DS1.h>　　　　　　　　　//https://github.com/sparkfun/SparkFun_LSM9DS1_Arduino_Library
+#include <ESP8266WiFi.h>                      //https://github.com/esp8266/Arduino
+#include <Wire.h>                             //I2Cライブラリ
+#include <SparkFunLSM9DS1.h>                  //https://github.com/sparkfun/SparkFun_LSM9DS1_Arduino_Library
 
 #define ADAddr 0x48
 
