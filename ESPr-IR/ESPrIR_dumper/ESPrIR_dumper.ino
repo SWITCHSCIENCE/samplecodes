@@ -66,8 +66,9 @@ void loop()
         {
  
             Serial.print(dataList[i].sampledTime - dataList[0].sampledTime);
-            Serial.print("\t");            
-            Serial.println(dataList[i].data);
+            Serial.print(",");            
+//            Serial.print("\t");            // for debug
+//            Serial.println(dataList[i].data); // for debug
             
             delay(1); // WDT対策
         }
