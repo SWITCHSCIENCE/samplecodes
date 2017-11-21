@@ -1,6 +1,8 @@
-#define _HALL1    15	// M2 (IO1:digital)
-#define _HALL2    17	// M4 (IO1:digital)
-#define _HALL3    19	// M6 (IO1:digital)
+/* Three Hall sensors (M2,M4,M6) on the Conta shield */
+
+#define _HALL1    15	// Conta shield digital pin from M2 (IO1:digital)
+#define _HALL2    17	// Conta shield digital pin from M4 (IO1:digital)
+#define _HALL3    19	// Conta shield digital pin from M6 (IO1:digital)
 
 int val,tmp;
 

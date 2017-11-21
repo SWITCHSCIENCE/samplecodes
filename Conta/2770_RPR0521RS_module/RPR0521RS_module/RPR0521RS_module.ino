@@ -29,7 +29,7 @@ RPR0521RS rpr0521rs;
 void setup() {
   byte rc;
 
-  Serial.begin(115200);
+  Serial.begin(115200);		/*  Modify : set the serial speed to 11500 kbps  */
   while (!Serial);
   
   Wire.begin();
@@ -66,3 +66,4 @@ void loop() {
   delay(500);
 
 }
+

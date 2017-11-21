@@ -23,13 +23,13 @@
 ******************************************************************************/
 #include <BD1020.h>
 
-int tempout_pin = A0;		// M1 (IO1:analog)
+int tempout_pin = A0;		/*  Modify : Temperature value is taken from pin A0  */
 
 BD1020 bd1020;
 
 void setup() {
 
-  Serial.begin(115200);
+  Serial.begin(115200);		/*  Modify : set the serial speed to 11500 kbps  */
   while (!Serial);
 
   bd1020.init(tempout_pin);

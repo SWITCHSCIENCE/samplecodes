@@ -24,15 +24,15 @@
 #include <Wire.h>
 #include <BH1745NUC.h>
 
-#define BH1745NUC_DEVICE_ADDRESS_38            (0x38)    // 7bit Addrss
-#define BH1745NUC_DEVICE_ADDRESS_39            (0x39)    // 7bit Addrss
+/* #define BH1745NUC_DEVICE_ADDRESS_38            (0x38)    // 7bit Addrss */
+/* #define BH1745NUC_DEVICE_ADDRESS_39            (0x39)    // 7bit Addrss */
 
 BH1745NUC bh1745nuc(BH1745NUC_DEVICE_ADDRESS_39);
 
 void setup() {
   byte rc;
 
-  Serial.begin(115200);
+  Serial.begin(115200);		/*  Modify : set the serial speed to 11500 kbps  */
   while (!Serial);
   
   Wire.begin();
@@ -60,4 +60,5 @@ void loop() {
   delay(500);
 
 }
+
 
