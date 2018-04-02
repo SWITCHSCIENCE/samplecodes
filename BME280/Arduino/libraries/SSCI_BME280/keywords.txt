@@ -1,0 +1,3 @@
+setMode	KEYWORD1
+readTrim	KEYWORD1
+readData	KEYWORD1
