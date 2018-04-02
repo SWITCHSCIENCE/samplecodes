@@ -1,3 +1,6 @@
+このリポジトリの内容は https://github.com/SWITCHSCIENCE/samplecodes に移動しました。
+これ以降、コードのアップデートがある場合は、移動先でのみ行う予定です。
+
 # BME280
 
 BME280 is environmental sensor that makes Bosch Sensortec. It can sense pressure, humidity and temperature.  
