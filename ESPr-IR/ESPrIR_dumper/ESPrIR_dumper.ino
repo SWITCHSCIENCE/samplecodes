@@ -65,7 +65,7 @@ void loop()
         for(int i=1; i<index;i++)
         {
  
-            Serial.print(dataList[i].sampledTime - dataList[0].sampledTime);
+            Serial.print(dataList[i].sampledTime - dataList[i-1].sampledTime);
             Serial.print(",");            
 //            Serial.print("\t");            // for debug
 //            Serial.println(dataList[i].data); // for debug
