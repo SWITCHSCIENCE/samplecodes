@@ -169,7 +169,7 @@ void loop()
   M5.Lcd.setTextSize(1);
   M5.Lcd.print("MLX90640\nDEMO with\nM5Stack");
 
-  M5.Lcd.print("\nMFT2018\nSwitch Science");
+  M5.Lcd.print("\n\nMFT2018\nSwitch Science");
 
   M5.Lcd.setCursor(0,230);
   M5.Lcd.print("Button A: Rainbow C: Grayscale");
