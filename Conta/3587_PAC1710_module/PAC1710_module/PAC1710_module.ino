@@ -1,9 +1,11 @@
 #include <Wire.h>
 #include "PAC1710.hpp"
 
-#define DEVID 0x18 // Resistor OPEN (N.C.) at ADDR_SEL pin
+#define DEVID PAC1710::ADDR::OPEN // Resistor OPEN (N.C.) at ADDR_SEL pin
+const int VSHUNT_mOHM = 10;
 
-//送信用関数(デバイスアドレス,レジスタアドレス,&送信用データ,送信データ数)
+/** I2C sending data to device
+ */
 void datasend(int id,int reg,int *data,int datasize) {
     Wire.beginTransmission(id);
     Wire.write(reg);
@@ -13,34 +15,67 @@ void datasend(int id,int reg,int *data,int datasize) {
     Wire.endTransmission();
 }
 
-//受信用関数(デバイスアドレス,レジスタアドレス,&受信用データ,受信データ数)
-void dataread(int id,int reg,int *data,int datasize) {
+/** I2C reading data from device
+ */
+int dataread(int id,int reg,int *data,int datasize) {
     Wire.beginTransmission(id);
     Wire.write(reg);
     Wire.endTransmission(false);
     Wire.requestFrom(id, datasize, false);
-    for(int i=0;i<datasize;i++) {
+    int i=0;
+    while((i<datasize) && Wire.available()) {
         data[i] = Wire.read();
+        i++;
     }
-    Serial.print(Wire.endTransmission(true),HEX);
+    return Wire.endTransmission(true);
 }
 
+
 uint16_t getID() {
-    int pid,mid;
-    dataread(DEVID, 0xFD, &pid, 1);
-    dataread(DEVID, 0xFE, &mid, 1);
-    return (pid << 8) && mid;
+    int id[3] = {0};
+    dataread(DEVID, PAC1710::REG::PID, id, 3);
+    return (id[0] << 8) | id[1];
 }
 
 void setup() {
     Wire.begin();
     Serial.begin(115200);
+
+    pinMode(13, OUTPUT);
+    digitalWrite(13, LOW);
+
     Serial.print("Reading PID and MID... ");
-    Serial.print(getID(), HEX);
-    Serial.println("DONE");
-    
+    Serial.println(getID(), HEX); // expected "585D" in PAC1710
+
+    // Initialize PAC1710 here...
+    // Default sample rate 80ms => Denominator: 2047
+    // Default sample range => +-80
+
 }
 
 void loop() {
-    
+    uint16_t ch1Vsense[2] = {0};
+    // uint16_t ch1Vsource[2] = {0};
+
+    dataread(DEVID, PAC1710::REG::C1_SVRES_H, ch1Vsense, 2);
+    // dataread(DEVID, PAC1710::REG::C1_VVRES_H, ch1Vsource, 2);
+
+    int measuredVsense = (int16_t((ch1Vsense[0] << 4) || (ch1Vsense[1] >> 4)) );
+    // float measuredVsource = (int16_t((ch1Vsource[0] << 4) || (ch1Vsource[1] >> 4) ) * 19.531;
+
+    // Serial.print("\tVsense: ");
+    Serial.println(measuredVsense);
+    // Serial.println("");
+
+    // Serial.print("\tVsource: ");
+    // Serial.print(measuredVsource);
+    // Serial.println(" mV");
+
+    // int regdump[8] = {0};
+    // dataread(DEVID, PAC1710::REG::C1_SVRES_H, regdump, 8);
+    // for(int i=0; i<8; i++) {
+    //     Serial.println(regdump[i],DEC);
+    // }
+    // Serial.println("***********");
+    delay(100);
 }
