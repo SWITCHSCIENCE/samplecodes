@@ -115,7 +115,7 @@ void  InitLEDdriver(int addr) {              // PCA9622DR Initialize
 
     // Mode 0 Set
     cmd[0] = 0x00;              // SLEEP = 0
-    I2Cwrite(addr, MODE1, cmd, 2);
+    I2Cwrite(addr, MODE1, cmd, 1);
     // Port Mode Configration
     cmd[0] = 0xAA;              // LED3 ,2 ,1 ,0  PWM(=10)
     cmd[1] = 0xAA;              // LED7 ,6 ,5 ,4  PWM(=10)
@@ -152,7 +152,7 @@ void loop()
     // 1bit づつ点灯
     for (i = 0; i < 10; i++) {
         while (ReadLEDdata(i) < 0xFF) { 
-            AddLEDdata(0x0001 << i, 4);  //  LEDの輝度を 1ビットづつ 4 増加する（255まで）
+            AddLEDdata(0x0001 << i, 4);   //  LEDの輝度を 1ビットづつ 4 増加する（255まで）
             if (ReadLEDdata(i) > 0xFB) WriteLEDdata(i, 0xFF);
             WriteLED(LED_BAR_ADDR);
             delay(1);
@@ -162,7 +162,7 @@ void loop()
     // 1bit づつ消灯
     for (i = 0; i < 10; i++) {
         while (ReadLEDdata(i) > 0) {
-            AddLEDdata(0x0001 << i, 0xFC);　// LEDの輝度を 1ビットづつ -4 増加する（0まで）
+            AddLEDdata(0x0001 << i, 0xFC);    // LEDの輝度を 1ビットづつ -4 増加する（0まで）
             if (ReadLEDdata(i) < 4) WriteLEDdata(i, 0);
             WriteLED(LED_BAR_ADDR);
             delay(1);
@@ -171,14 +171,14 @@ void loop()
     delay(250);
     // 全点灯
     while (ReadLEDdata(0) < 0xFF) {
-        AddLEDdata(0xFFFF, 1);　// LEDの輝度を 全ビット 1 増加する（255まで）
+        AddLEDdata(0xFFFF, 1);    // LEDの輝度を 全ビット 1 増加する（255まで）
         WriteLED(LED_BAR_ADDR);
         delay(1);
     }
     delay(250);
     // 全消灯
     while (ReadLEDdata(0) > 0) {
-        AddLEDdata(0xFFFF, 0xFF);　// LEDの輝度を 全ビット -1 増加する（0まで）
+        AddLEDdata(0xFFFF, 0xFF);   //LEDの輝度を 全ビット -1 増加する（0まで）
         WriteLED(LED_BAR_ADDR);
         delay(1);
     }
