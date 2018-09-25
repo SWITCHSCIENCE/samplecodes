@@ -171,7 +171,7 @@ void loop() {
   dsw = sw;
   sw = SW_read();
 
-  if (dsw != sw) {
+  if (dsw == 0) {
     switch (sw) {
       case 1 :    // -=-= SW1 =-=-
         indx = 0;
