@@ -134,6 +134,7 @@ char   SW_read(void) {
 /*------------------------------------------------------------------------------------
     Serial Sub
 */
+// 桁付き16進表示（ 0 fill型 ）
 void  PrintHex(uint32_t dat, int dig) {
   if ((dig >= 1) && (dig <= 8)) {
     for (int i = dig; i > 0; i--) {
@@ -247,3 +248,4 @@ void loop() {
   cnt++;
   delay(20);
 }
+
