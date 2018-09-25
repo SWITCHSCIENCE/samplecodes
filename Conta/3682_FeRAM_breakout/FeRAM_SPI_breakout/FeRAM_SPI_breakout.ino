@@ -73,7 +73,7 @@ byte  FeRAMread(uint32_t addr)
 //  ---- block write
 void FeRAMblockWrite(uint32_t addr, byte *data, uint32_t length)
 {
-    int idx;
+    uint32_t idx;
 
     for (idx = 0; idx < length; idx++) {
         FeRAMwrite(addr + idx, *(data + idx));
