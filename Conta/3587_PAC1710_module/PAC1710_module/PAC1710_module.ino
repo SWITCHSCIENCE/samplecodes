@@ -32,8 +32,8 @@ int dataread(int id,int reg,int *data,int datasize) {
 
 
 uint16_t getID() {
-    int id[3] = {0};
-    dataread(DEVID, PAC1710::REG::PID, id, 3);
+    int id[2] = {0};
+    dataread(DEVID, PAC1710::REG::PID, id, 2);
     return (id[0] << 8) | id[1];
 }
 
@@ -49,27 +49,33 @@ void setup() {
 
     // Initialize PAC1710 here...
     // Default sample rate 80ms => Denominator: 2047
-    // Default sample range => +-80
+    // Default sample range => +-80 mV
 
 }
 
 void loop() {
     uint16_t ch1Vsense[2] = {0};
-    // uint16_t ch1Vsource[2] = {0};
+    uint16_t ch1Vsource[2] = {0};
 
-    dataread(DEVID, PAC1710::REG::C1_SVRES_H, ch1Vsense, 2);
-    // dataread(DEVID, PAC1710::REG::C1_VVRES_H, ch1Vsource, 2);
+    dataread(DEVID, PAC1710::REG::C1_SVRES_H, ch1Vsense, 2); // CHANNEL 1 VSENSE RESULT REGISTER 
+    dataread(DEVID, PAC1710::REG::C1_VVRES_H, ch1Vsource, 2); // CHANNEL 1 VSOURCE RESULT REGISTER 
 
-    int measuredVsense = (int16_t((ch1Vsense[0] << 4) || (ch1Vsense[1] >> 4)) );
-    // float measuredVsource = (int16_t((ch1Vsource[0] << 4) || (ch1Vsource[1] >> 4) ) * 19.531;
+    float measuredVsense = (int16_t((ch1Vsense[0] << 4) | (ch1Vsense[1] >> 4)) * 3.9082);
+    // 3.9082 is magic value in default denominator 2047, Rsenes 10mOhm, Measure range += 80mV
+    // see "4.4 Current Measurement"
+    // FSC = 8A
 
-    // Serial.print("\tVsense: ");
-    Serial.println(measuredVsense);
-    // Serial.println("");
+    float measuredVsource = (int16_t((ch1Vsource[0] << 3) | (ch1Vsource[1] >> 5) ) * 19.531); 
+    // 19.531 is magic value in default denominator 2047
+    // see "4.5 Voltage Measurement"
 
-    // Serial.print("\tVsource: ");
-    // Serial.print(measuredVsource);
-    // Serial.println(" mV");
+    Serial.print("\tVsense: ");
+    Serial.print(measuredVsense);
+    Serial.println(" mA");
+
+    Serial.print("\tVsource: ");
+    Serial.print(measuredVsource);
+    Serial.println(" mV");
 
     // int regdump[8] = {0};
     // dataread(DEVID, PAC1710::REG::C1_SVRES_H, regdump, 8);
