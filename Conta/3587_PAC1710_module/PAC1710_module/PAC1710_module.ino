@@ -60,7 +60,7 @@ void loop() {
     dataread(DEVID, PAC1710::REG::C1_SVRES_H, ch1Vsense, 2); // CHANNEL 1 VSENSE RESULT REGISTER 
     dataread(DEVID, PAC1710::REG::C1_VVRES_H, ch1Vsource, 2); // CHANNEL 1 VSOURCE RESULT REGISTER 
 
-    float measuredVsense = (int16_t((ch1Vsense[0] << 4) | (ch1Vsense[1] >> 4)) * 3.9082);
+    float Ibus_mA = ( (int16_t(ch1Vsense[0] << 8 | (ch1Vsense[1])) >>4) * 3.9082);
     // 3.9082 is magic value in default denominator 2047, Rsenes 10mOhm, Measure range += 80mV
     // see "4.4 Current Measurement"
     // FSC = 8A
@@ -69,19 +69,13 @@ void loop() {
     // 19.531 is magic value in default denominator 2047
     // see "4.5 Voltage Measurement"
 
-    Serial.print("\tVsense: ");
-    Serial.print(measuredVsense);
-    Serial.println(" mA");
+    Serial.print("\Ibus: ");
+    Serial.print(Ibus_mA);
+    Serial.print(" mA,");
 
     Serial.print("\tVsource: ");
     Serial.print(measuredVsource);
     Serial.println(" mV");
 
-    // int regdump[8] = {0};
-    // dataread(DEVID, PAC1710::REG::C1_SVRES_H, regdump, 8);
-    // for(int i=0; i<8; i++) {
-    //     Serial.println(regdump[i],DEC);
-    // }
-    // Serial.println("***********");
     delay(100);
 }
