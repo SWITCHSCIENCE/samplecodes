@@ -8,6 +8,7 @@
 #	[ Raspberry Pi 2 : https://www.switch-science.com/catalog/2910/ ]
 #	[ Conta HAT : https://www.switch-science.com/catalog/3677/ ]
 #	[ 2x2タクトスイッチモジュール : https://www.switch-science.com/catalog/3680/ ]
+#	M1 にスイッチモジュールを搭載
 #*************************************************************************************
 
 import  time
