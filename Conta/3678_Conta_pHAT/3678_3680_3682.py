@@ -29,7 +29,7 @@ CMD_WRITE = 0x02
 
 # FeRAM 初期化
 def feram_init():
-        spi.open(0,0)
+        spi.open(0,0)                   # M2 のソケットに刺した場合、SPI は 0ch
         spi.max_speed_hz = 1000000
         spi.bits_per_word = 8
         spi.mode = 3
