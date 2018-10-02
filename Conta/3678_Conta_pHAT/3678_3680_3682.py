@@ -9,6 +9,7 @@
 #	[ Conta pHAT : https://www.switch-science.com/catalog/3678/ ]
 #	[ 2x2タクトスイッチモジュール : https://www.switch-science.com/catalog/3680/ ]
 #	[ 1Mbit FeRAM : https://www.switch-science.com/catalog/3682/ ]
+#	M1 にスイッチモジュール、M2 に FeRAM モジュールを搭載
 #*************************************************************************************
 
 import  time
