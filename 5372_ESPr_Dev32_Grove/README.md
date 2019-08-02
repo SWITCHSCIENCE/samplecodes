@@ -12,14 +12,14 @@ Softwares for ESPr_Dev32_Grove by Switch Science Inc.
 Hardware
 ========
 
-###GROVE - 温湿度・気圧センサ（BME280）
++ GROVE - 温湿度・気圧センサ（BME280）
 (https://www.switch-science.com/catalog/3374/)
 
-###GROVE - ボタン(パネルタイプ)
++ GROVE - ボタン(パネルタイプ)
 (https://www.switch-science.com/catalog/1246/)
 
-###GROVE - LED 青
++ GROVE - LED 青
 (https://www.switch-science.com/catalog/1251/)
 
-###GROVE - ボリューム(パネルタイプ)
++ GROVE - ボリューム(パネルタイプ)
 (https://www.switch-science.com/catalog/1247/)
