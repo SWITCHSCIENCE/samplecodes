@@ -1,4 +1,4 @@
-ESPr_Dev32_Grove
+## Sample codes (Arduino IDE for ESP32-WROOM-32)
 =============
 
 Softwares for ESPr_Dev32_Grove
@@ -12,14 +12,10 @@ Softwares for ESPr_Dev32_Grove
 Hardware
 ========
 
-+ GROVE - 温湿度・気圧センサ（BME280）
-(https://www.switch-science.com/catalog/3374/)
++ [GROVE - 温湿度・気圧センサ（BME280）](https://www.switch-science.com/catalog/3374/)
 
-+ GROVE - ボタン(パネルタイプ)
-(https://www.switch-science.com/catalog/1246/)
++ [GROVE - ボタン(パネルタイプ)](https://www.switch-science.com/catalog/1246/)
 
-+ GROVE - LED 青
-(https://www.switch-science.com/catalog/1251/)
++ [GROVE - LED 青](https://www.switch-science.com/catalog/1251/)
 
-+ GROVE - ボリューム(パネルタイプ)
-(https://www.switch-science.com/catalog/1247/)
++ [GROVE - ボリューム(パネルタイプ)](https://www.switch-science.com/catalog/1247/)
