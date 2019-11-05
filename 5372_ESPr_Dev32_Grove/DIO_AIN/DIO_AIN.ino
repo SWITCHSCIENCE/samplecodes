@@ -1,7 +1,6 @@
 void setup() {
   pinMode(25, OUTPUT);  // set LED(D0) as an OUTPUT device
   pinMode(26, INPUT);   // set SW(D2) as an INPUT device
-  pinMode(15, INPUT);   // set D3 as an INPUT device
   pinMode(4, INPUT);    // set Volume (A0) as an Analog INPUT device
 
   Serial.begin(115200);

@@ -1,6 +1,6 @@
 # Sample codes (Arduino IDE for ESP-WROOM-32)
 
-Softwares for ESPr_Dev32_Grove
+Softwares for ESPr Branch 32 (ESPr_Dev32_Grove)
 
 + BME280  -------------- I2C（BME280）のサンプルプログラムの格納ディレクトリ
    +  BME280.ino  ------ GROVE - 温湿度・気圧センサ（BME280）の値を読むサンプルプログラム (Seeed_BME280 ライブラリ利用)
