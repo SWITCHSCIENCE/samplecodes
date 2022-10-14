@@ -8,11 +8,9 @@ Softwares for Picossci DC Servo motor driver
 
 + firmwear ------------------------- Picossci DC Servo motor driver の初期ファームウェアの格納ディレクトリ
    + ArduinoIDE ----------------------- Arduino言語版
-   |   + MotorCommandHAT.ino -------------- 初期ファームウェア (Arduino言語版)
-   |   + MotorCommandHAT.ino.generic.uf2 -- ファームウェアバイナリー
-   |
+       + MotorCommandHAT.ino -------------- 初期ファームウェア (Arduino言語版)
+       + MotorCommandHAT.ino.generic.uf2 -- ファームウェアバイナリー
    + MicroPython ---------------------- MicroPython言語版
-   |   + MotorCommandHAT.py --------------- 初期ファームウェア (MicroPython版)
-   |   + rp2-pico-20220618-v1.19.1.uf2 ---- RP2040 MicroPython
-   |
+       + MotorCommandHAT.py --------------- 初期ファームウェア (MicroPython版)
+       + rp2-pico-20220618-v1.19.1.uf2 ---- RP2040 MicroPython
    + Command.txt ---------------------- 初期ファームウェアの制御コマンドについて
