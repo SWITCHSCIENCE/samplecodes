@@ -20,7 +20,7 @@ ldir = 1
 ldat = 0
 cnt = 0
 
-# u0.write('UART TEST\r\n')
+u0.write('Host sample.\r\n')
 
 #=====================================================================
 #  main loop

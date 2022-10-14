@@ -1,3 +1,9 @@
+#=====================================================================
+#      Picossci DC/Servo Motor Driver
+#      Sample program [MicroPython]
+#      O.Aoki [ switch-science ]
+#=====================================================================
+
 from machine import UART, PWM, Pin
 import time
 
@@ -112,8 +118,7 @@ while True:
         elif cha2 == b'\r' or cha2 == b'\n':
             rbuff = rbuff.decode('utf-8')
             rstr = rbuff.split(",")
-#             uart0.write(str(len(rstr)) + ' ' + str(rstr) + '\r\n')
-
+            
             if len(rstr) >= 2 and isint(rstr[1]):
                 pnum = int(rstr[1])
             else :
@@ -126,10 +131,9 @@ while True:
                 dat = abs(int(rstr[2]))
                 if dat >= 0xFFFF:
                     dat = 0xFFFF
-#                 uart0.write(str(rstr[2]) + ' ' + str(ddir) + ' ' + str(dat) + '\r\n')
-
+            
             rbuff = bytes()
-
+            
             if len(rstr) == 2 and rstr[0] == 'R':
                 if pnum == 0:
                     uart0.write('R,0,' + str(ain0.read_u16()) + '\r\n')
@@ -190,6 +194,3 @@ while True:
                         motor3B.duty_u16(dat)
         else :
             rbuff += cha2
-
-#         cnt += 1
-#     time.sleep(0.01)

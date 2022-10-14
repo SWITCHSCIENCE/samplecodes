@@ -43,7 +43,7 @@ class SerialBase:
         return self.isOpen
 
 def main():
-    print("Host sample.")
+    print("Host sample.\r\n")
 
     # シリアルクラス
     ser = SerialBase()
