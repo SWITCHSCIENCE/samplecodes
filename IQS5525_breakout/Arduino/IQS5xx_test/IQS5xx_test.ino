@@ -5,14 +5,14 @@
 #define ACK_RESET           0x80
 
 /******************** DEVICE INFO REGISTERS ***************************/
-#define ProductNumber_adr   0x0000  //(READ)      //2 BYTES;  
-#define GestureEvents0_adr  0x000D  //(READ)  
+#define ProductNumber_adr   0x0000  //(READ)      //2 BYTES;
+#define GestureEvents0_adr  0x000D  //(READ)
 #define SystemControl0_adr  0x0431  //(READ/WRITE)
 #define SystemControl1_adr  0x0432  //(READ/WRITE)
 #define SystemConfig0_adr   0x058E  //(READ/WRITE/E2)
 #define TotalRx_adr         0x063D  //(READ/WRITE/E2)
-#define RxMapping_adr       0x063F  //(READ/WRITE/E2) //10 BYTES; 
-#define TxMapping_adr       0x0649  //(READ/WRITE/E2) //15 BYTES; 
+#define RxMapping_adr       0x063F  //(READ/WRITE/E2) //10 BYTES;
+#define TxMapping_adr       0x0649  //(READ/WRITE/E2) //15 BYTES;
 
 #define END_WINDOW          (uint16_t)0xEEEE
 
@@ -77,7 +77,9 @@ void IQS5xx_AcknowledgeReset() {
 // =============================================================
 
 void setup() {
-  Wire.begin();
+//  Wire.begin();
+  Wire.begin(4,5); // ESP02 SDA,SCL
+//  Wire.begin(25,26); // ESP32
   Serial.begin(115200);
   pinMode(2, INPUT);  // Ready Pin
 
@@ -174,7 +176,7 @@ void loop() {
   int i16Tarea1 = (Data_Buff[15]);
 
   if (i16Abs1X != -1 && i16Abs1Y != -1) {
-    sprintf(buf, "%4d,%4d,%4d,%4d : %3d,%3d : %2x,%2x", i16Rel1X, i16Rel1Y, i16Abs1X, i16Abs1Y, i16Tstr1, i16Tarea1, Data_Buff[0], Data_Buff[1]);
+    sprintf(buf, "%5d,%5d,%5d,%5d : %3d,%3d : %2x,%2x", i16Rel1X, i16Rel1Y, i16Abs1X, i16Abs1Y, i16Tstr1, i16Tarea1, Data_Buff[0], Data_Buff[1]);
     Serial.print(buf);
     Serial.println();
   }
