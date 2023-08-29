@@ -182,6 +182,9 @@ def ComExe():
             led2reg ^= 0x01
             led3reg ^= 0x01
         elif cnum == 90 : LEDflag = cdat & 0x01  # Write data to LED flag register
+        elif cnum == 91 : LEDflag = 1            # Set flag register
+        elif cnum == 92 : LEDflag = 0            # Reset LED flag register
+        elif cnum == 93 : LEDflag ^= 0x01        # Toggle LED flag register
         elif cnum == 99 :  # All Register Reset
             relay1reg = 0
             relay2reg = 0
