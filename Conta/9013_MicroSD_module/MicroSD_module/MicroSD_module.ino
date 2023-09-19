@@ -116,7 +116,7 @@ static void openRecursive(FsFile& file)
   }
   else
   {
-/// フォルダの場合は、先頭32バイトをシリアルモニタに表示する。
+/// ファイルの場合は、先頭32バイトをシリアルモニタに表示する。
     uint8_t buffer[16];
     if (filesize)
     {
