@@ -1,4 +1,6 @@
 ** シリアルポート（全二重）
+・GPIO 0 (RP2040:UART0_TX)  →  GPIO 15 (RPi:RXD0)
+・GPIO 1 (RP2040:UART0_RX)  ←  GPIO 14 (RPi:TXD0)
 ・ボーレート：115200bps
 ・データ長：8bit
 ・パリティ：無し
