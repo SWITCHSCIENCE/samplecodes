@@ -16,7 +16,8 @@ https://github.com/earlephilhower/arduino-pico
 
 mbed版には現在対応しておりません。
 
-examples フォルダ内のスケッチ内にコメントとして記載しています。
+このサンプルコードは Arduino ライブラリの形式になっています。
+ライブラリの使用方法は `examples/HowToUse/main.cpp` 内にコメントとして記載しています。
 
 ### Arduino IDEで使用する場合
 
