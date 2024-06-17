@@ -1,10 +1,8 @@
 // #define GPIO_DEBUG_PIN 19
-#if defined (GPIO_DEBUG_PIN)
-#include <Arduino.h>
-#endif
 
 #include "cvbs_generate.hpp"
 
+#include <hardware/gpio.h>
 #include <math.h>
 #include <string.h>
 
@@ -167,7 +165,11 @@ bool cvbs_generate_t::init(const config_t &config)
   if (config.dma_count < 2) { return false; }
 
 #if defined ( GPIO_DEBUG_PIN )
+#if __has_include (<FreeRTOS.h>)
 gpio_init(GPIO_DEBUG_PIN);
+#else
+_gpio_init(GPIO_DEBUG_PIN);
+#endif
 gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
 #endif
 
@@ -191,7 +193,12 @@ gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
 
   setup_palette_ntsc_base(&_internal_data, spec, config.output_level);
 
+#if __has_include (<FreeRTOS.h>)
   xTaskCreate((TaskFunction_t)task_dma_buffer, "dmabuf", 4096, this, _config.task_priority, &_task_cvbs);
+#else
+  this->_task_cvbs.start(mbed::callback(task_dma_buffer, this));
+  this->_task_cvbs.set_priority((osPriority_t)_config.task_priority);
+#endif
   return true;
 }
 
@@ -202,7 +209,8 @@ bool cvbs_generate_t::enablePixelMode(pixel_mode_t pixel_mode)
   if (_internal_data.palettes[pixel_mode] == nullptr) {
     auto pixel_size = getPixelModeByteSize(pixel_mode);
     auto palette_size = (_spec_info->burst_shift_mask == 1) ? 512 : 256;
-    _internal_data.palettes[pixel_mode] = (uint32_t*)aligned_alloc(4, sizeof(uint32_t) * pixel_size * palette_size);
+    // 4Byteのアラインメントを取るために4Byte分の余白を確保する
+    _internal_data.palettes[pixel_mode] = (uint32_t*)(~3 & (uintptr_t)malloc(4 + sizeof(uint32_t) * pixel_size * palette_size));
 
     uint32_t black_level = _spec_info->black_mv * _config.output_level / _spec_info->white_mv;
     uint32_t diff_level = _config.output_level - black_level;
@@ -254,8 +262,13 @@ bool cvbs_generate_t::dma_callback(void* param, uintptr_t dma_buf, size_t dma_bu
   auto scanlines = me->_spec_info->total_scanlines;
   if ((scanline += 2) >= scanlines) { scanline -= scanlines; }
   me->_scanline = scanline;
+
+#if __has_include (<FreeRTOS.h>)
   BaseType_t pxHigherPriorityTaskWoken = false;
   vTaskNotifyGiveFromISR(me->_task_cvbs, &pxHigherPriorityTaskWoken);
+#else
+  me->_event_flags.set(_FLAG_FROM_ISR);
+#endif
   return true;
 }
 
@@ -487,7 +500,11 @@ void cvbs_generate_t::task_dma_buffer(cvbs_generate_t* me)
 {
   uint_fast8_t reqidx = 0;
   for (;;) {
+#if __has_include (<FreeRTOS.h>)
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+#else
+    me->_event_flags.wait_all(_FLAG_FROM_ISR, osWaitForever);
+#endif
     int16_t scanline;
     while ((scanline = me->_video_request[reqidx].scanline) >= 0)
     {

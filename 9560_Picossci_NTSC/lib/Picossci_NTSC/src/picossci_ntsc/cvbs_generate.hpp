@@ -1,9 +1,14 @@
 #ifndef PICOSSCI_NTSC_CVBS_GENERATE_HPP_
 #define PICOSSCI_NTSC_CVBS_GENERATE_HPP_
 
+#if __has_include (<FreeRTOS.h>)
 #include <FreeRTOS.h>
 #include <task.h>
+#else
+#include <mbed.h>
+#endif
 #include <stdint.h>
+#include <stddef.h>
 
 //--------------------------------------------------------------------------------
 
@@ -100,8 +105,14 @@ public:
     // DMA転送用の走査線バッファの数 (最低2)
     uint8_t dma_count = 4;
 
+#if __has_include (<FreeRTOS.h>)
     // DMAバッファ作成タスクの優先度
-    uint8_t task_priority = 10;
+    uint8_t task_priority = configMAX_PRIORITIES - 1;
+#else
+    // DMAバッファ作成タスクの優先度
+    uint8_t task_priority = osPriority_t::osPriorityRealtime;
+#endif
+
   };
 
   bool init(const config_t &config);
@@ -134,8 +145,14 @@ protected:
   /// データ要求情報の配列
   video_request_t* _video_request = nullptr;
 
+#if __has_include (<FreeRTOS.h>)
   /// DMA転送割り込み発生時の通知先タスク
   xTaskHandle _task_cvbs = nullptr;
+#else
+  static constexpr const uint32_t _FLAG_FROM_ISR = 1;
+  rtos::Thread _task_cvbs;
+  rtos::EventFlags _event_flags;
+#endif
 
   const signal_spec_info_t* _spec_info = nullptr;
   config_t _config;

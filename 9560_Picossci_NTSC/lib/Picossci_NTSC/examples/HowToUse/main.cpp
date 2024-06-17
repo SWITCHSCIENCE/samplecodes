@@ -3,7 +3,7 @@
 // PicossciNTSCライブラリ
 #include <Picossci_NTSC.h>
 
-#include <pico/stdlib.h>
+#include <pico.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -261,24 +261,6 @@ static void callback_makeImage(cvbs_generate_t::line_image_info_t* info, uint16_
           buf[x] = palette_index;
         }
       }
-
-      // カラーパレット色設定
-      // ※ setPalette関数は比較的重い処理なので、走査線単位で変更するような使い方は推奨されません。
-      //   この例では説明のために走査線毎にパレットを変更していますが、コールバック関数外で行うことを推奨します。
-      // この例では処理負荷を時間分散させるため、1走査線あたり1色のみパレットを変更します。
-      {
-        int rv = 256 - abs((int)((frame_count +  85)&255) - 128);
-        int gv = 256 - abs((int)((frame_count + 170)&255) - 128);
-        int bv = 256 - abs((int)  frame_count             - 128);
-        rv = rv < 0 ? 0 : rv > 256 ? 256 : rv;
-        gv = gv < 0 ? 0 : gv > 256 ? 256 : gv;
-        bv = bv < 0 ? 0 : bv > 256 ? 256 : bv;
-        int i = y*256 / 480;
-        uint8_t r = i*rv >> 8;
-        uint8_t g = i*gv >> 8;
-        uint8_t b = i*bv >> 8;
-        picossci_ntsc.setPalette(i, r<<16|g<<8|b);
-      }
     }
     break;
 
@@ -362,11 +344,14 @@ static void callback_makeImage(cvbs_generate_t::line_image_info_t* info, uint16_
 
 //----------------------------------------------------------------
 
+extern "C" void set_clock(uint32_t freq_khz);
+
 void setup(void)
 {
 #if defined (CONFIG_CPU_FREQ_KHZ)
-  set_sys_clock_khz(CONFIG_CPU_FREQ_KHZ, false);
+  set_clock(CONFIG_CPU_FREQ_KHZ);
 #endif
+
   auto cfg = picossci_ntsc.getConfig();
 
   /// 使用するPIOの番号 (0または1 を指定する)
@@ -399,9 +384,32 @@ void setup(void)
 
 void loop(void)
 {
-  vTaskDelay(1);
+  delay(1);
+  static uint32_t counter = 0;
+  counter++;
+
   switch (scene_index) {
   default:
+    break;
+
+  case 6:
+  case 7:
+    // カラーパレットを動的に変更する例
+    {
+      int rv = 256 - abs((int)((counter*3 +  85)&255) - 128);
+      int gv = 256 - abs((int)((counter*3 + 170)&255) - 128);
+      int bv = 256 - abs((int)  counter*3             - 128);
+      rv = rv < 0 ? 0 : rv > 256 ? 256 : rv;
+      gv = gv < 0 ? 0 : gv > 256 ? 256 : gv;
+      bv = bv < 0 ? 0 : bv > 256 ? 256 : bv;
+      for (int i = 0; i < 256; ++i)
+      {
+        uint8_t r = i*rv >> 8;
+        uint8_t g = i*gv >> 8;
+        uint8_t b = i*bv >> 8;
+        picossci_ntsc.setPalette(i, r<<16|g<<8|b);
+      }
+    }
     break;
 
   case 8:

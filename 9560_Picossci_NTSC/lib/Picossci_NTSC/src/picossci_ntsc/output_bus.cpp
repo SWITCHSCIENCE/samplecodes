@@ -1,13 +1,11 @@
 // #define GPIO_DEBUG_PIN 18
-#if defined (GPIO_DEBUG_PIN)
-#include <Arduino.h>
-#endif
 
 #include "output_bus.hpp"
 
 #include <hardware/pll.h>
 #include <hardware/gpio.h>
 #include <hardware/dma.h>
+#include <hardware/irq.h>
 #include <math.h>
 
 //--------------------------------------------------------------------------------
@@ -217,7 +215,11 @@ bool continuous_output_dma_t::init(const config_t& config)
   if (config.dma_loop_bits == 0 || config.callback_function == nullptr) { return false; }
 
 #if defined ( GPIO_DEBUG_PIN )
+#if __has_include (<FreeRTOS.h>)
 gpio_init(GPIO_DEBUG_PIN);
+#else
+_gpio_init(GPIO_DEBUG_PIN);
+#endif
 gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
 #endif
 
@@ -237,7 +239,7 @@ gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
   }
   uint8_t loop_bits = config.dma_loop_bits;
 
-  _dma_loop_addr_list = (uintptr_t*)aligned_alloc(sizeof(uintptr_t) << loop_bits, sizeof(uintptr_t) << loop_bits);
+  _dma_loop_addr_list = (uintptr_t*)((uintptr_t)malloc(sizeof(uintptr_t) << (loop_bits + 1)) & ~((sizeof(uintptr_t) << loop_bits) - 1));
 
   _dma_chan_transfer = dma_chan_transfer;
   _dma_chan_looping  = dma_chan_looping;
@@ -246,11 +248,7 @@ gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
     channel_config_set_dreq(&dma_chan_config, config.dreq);
     channel_config_set_transfer_data_size(&dma_chan_config, DMA_SIZE_8); // データは1Byte単位で読み込む
     channel_config_set_chain_to(&dma_chan_config, _dma_chan_looping); // ループ用のDMAにチェインする
-#if defined (ARDUINO_ARCH_MBED_RP2040)
-    dma_chan_config.ctrl |= DMA_CH0_CTRL_TRIG_HIGH_PRIORITY_BITS;
-#else
-    channel_config_set_high_priority(&dma_chan_config, true);
-#endif
+    dma_chan_config.ctrl |= DMA_CH0_CTRL_TRIG_HIGH_PRIORITY_BITS;//   channel_config_set_high_priority(&dma_chan_config, true);
     dma_channel_configure(
         dma_chan_transfer,
         &dma_chan_config,
@@ -268,11 +266,7 @@ gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
     channel_config_set_chain_to(&dma_chan_config, dma_chan_transfer); // データ転送用のDMAにチェインする
     channel_config_set_transfer_data_size(&dma_chan_config, DMA_SIZE_32); // アドレス書き換えを目的としているので4Byte単位で読み込む
     channel_config_set_ring(&dma_chan_config, false, 2+loop_bits); // 4バイト単位でのDMAループを構成するのでloop_bitsに2を加算する
-#if defined (ARDUINO_ARCH_MBED_RP2040)
-    dma_chan_config.ctrl |= DMA_CH0_CTRL_TRIG_HIGH_PRIORITY_BITS;
-#else
-    channel_config_set_high_priority(&dma_chan_config, true);
-#endif
+    dma_chan_config.ctrl |= DMA_CH0_CTRL_TRIG_HIGH_PRIORITY_BITS;//    channel_config_set_high_priority(&dma_chan_config, true);
     dma_channel_configure(
         dma_chan_looping,
         &dma_chan_config,
@@ -284,8 +278,10 @@ gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
 
     _loop_index = 0;
 
+    static constexpr void(*irq_handlers[continuous_dma_instance_max])(void) = { irq_handler0, irq_handler1, irq_handler2, irq_handler3 };
+
     dma_channel_set_irq1_enabled(dma_chan_looping, true);
-    irq_add_shared_handler(DMA_IRQ_1, irq_handlers[instance_index], PICO_SHARED_IRQ_HANDLER_HIGHEST_ORDER_PRIORITY);
+    irq_add_shared_handler(DMA_IRQ_1, irq_handlers[instance_index], PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
     irq_set_enabled(DMA_IRQ_1, true);
   }
 
@@ -325,7 +321,7 @@ bool continuous_output_bus_t::init(const config_t& config)
   /// DMAバッファの作成時に各バッファ長さを4バイト単位にアライメントしておく。
   uint32_t aligned_len = (config.dma_length + 3) & ~3;
   _aligned_length = aligned_len;
-  _dma_buffer = (uint8_t*)aligned_alloc(4, aligned_len * config.dma_count);
+  _dma_buffer = (uint8_t*)(~3 & (uintptr_t)malloc(4 + aligned_len * config.dma_count));
   if (_dma_buffer)
   { /// 出力先PIOの初期化
     auto cfg_pio = _out_pio.getConfig();

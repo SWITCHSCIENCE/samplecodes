@@ -11,10 +11,9 @@ Softwares for "Picossci NTSC"
 
 ### 使用方法
 
-ボードマネージャとして `earlephilhower` 版の `arduino-pico` をご利用ください。
-https://github.com/earlephilhower/arduino-pico
-
-mbed版には現在対応しておりません。
+このこのサンプルコードは二種類のボードマネージャに対応しています。
+ - RaspberryPi公式 mbed 版
+ - `earlephilhower` 氏の FreeRTOS 版 ( https://github.com/earlephilhower/arduino-pico )
 
 このサンプルコードは Arduino ライブラリの形式になっています。
 ライブラリの使用方法は `examples/HowToUse/main.cpp` 内にコメントとして記載しています。

@@ -111,7 +111,6 @@ protected:
   static void irq_handler1(void) { irq_inner(1); }
   static void irq_handler2(void) { irq_inner(2); }
   static void irq_handler3(void) { irq_inner(3); }
-  static constexpr void(*irq_handlers[continuous_dma_instance_max])(void) = { irq_handler0, irq_handler1, irq_handler2, irq_handler3 };
 };
 
 //--------------------------------------------------------------------------------
