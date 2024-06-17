@@ -12,7 +12,7 @@ Softwares for "Picossci NTSC"
 ### 使用方法
 
 このこのサンプルコードは二種類のボードマネージャに対応しています。
- - RaspberryPi公式 mbed 版
+ - `Arduino` 公式の mbed 版
  - `earlephilhower` 氏の FreeRTOS 版 ( https://github.com/earlephilhower/arduino-pico )
 
 このサンプルコードは Arduino ライブラリの形式になっています。
