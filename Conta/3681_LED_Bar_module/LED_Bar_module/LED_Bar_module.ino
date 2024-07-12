@@ -4,7 +4,7 @@
 **  Created : 2018/09/21 15:45:00                                                       **
 **  Author  : O.aoki                                                                    **
 **                                                                                      **
-**  [ Arduino Uno + ベースシールド + 2x2タクトスイッチモジュール + LEDバーモジュール ]  **
+**  [ Arduino Uno + ベースシールド + LEDバーモジュール ]  **
 **  [ Arduino Uno : https://www.switch-science.com/catalog/789/ ]                       **
 **  [ ベースシールド : https://www.switch-science.com/catalog/2769/ ]                   **
 **  [ LEDバーモジュール : https://www.switch-science.com/catalog/3681/ ]                **
