@@ -110,9 +110,9 @@ LABEL_BLIT8_EXIT:
         mov     r9, r5
         mov     r8, r4
         pop     {r4, r5, r6, r7, pc}
-//*/
 
 
+//-------------------------------------------------------------------------------------------------
   .thumb_func
   .global cvbs_generate_blit_16bit
 
@@ -131,6 +131,13 @@ cvbs_generate_blit_16bit:
         movs    r7, #1
         lsls    r7, r7, #10
         adds    r4, r3, r7      // r4に上位8bit用のパレットテーブルのアドレスを格納
+
+        ldr    r5, [sp, #36] // swap
+        cmp    r5, #0
+        beq    LABEL_BLIT16_ENTER
+        mov    r5, r4           // パレットの上位・下位を入れ替える
+        mov    r4, r3
+        mov    r3, r5
 
         b       LABEL_BLIT16_ENTER
 
@@ -222,3 +229,5 @@ LABEL_BLIT16_EXIT:
         mov     r9, r5
         mov     r8, r4
         pop     {r4, r5, r6, r7, pc}
+
+//-------------------------------------------------------------------------------------------------

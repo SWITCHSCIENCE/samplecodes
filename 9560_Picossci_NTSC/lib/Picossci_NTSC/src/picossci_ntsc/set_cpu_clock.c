@@ -63,7 +63,7 @@ static bool calc_sys_clock_khz(uint32_t freq_khz, uint *vco_out, uint *postdiv1_
     return false;
 }
 
-void set_clock(uint32_t freq_khz) {
+void set_cpu_clock(uint32_t freq_khz) {
     uint vco_freq=0, post_div1=0, post_div2=0;
     calc_sys_clock_khz(freq_khz, &vco_freq, &post_div1, &post_div2);
 
