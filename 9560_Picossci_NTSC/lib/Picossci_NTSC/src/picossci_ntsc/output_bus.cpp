@@ -1,4 +1,4 @@
-// #define GPIO_DEBUG_PIN 18
+// #define GPIO_DEBUG_PIN 21
 
 #include "output_bus.hpp"
 
@@ -7,7 +7,10 @@
 #include <hardware/dma.h>
 #include <hardware/irq.h>
 #include <math.h>
+#include <string.h>
 
+namespace ns_picossci_ntsc
+{
 //--------------------------------------------------------------------------------
 
 /// @brief CPU動作周波数を取得する
@@ -43,10 +46,76 @@ static pio_hw_t* getPioFromIndex(uint_fast8_t index)
 
 //--------------------------------------------------------------------------------
 
-bool simple_output_pio_t::init(const config_t& config)
-{
+bool output_pio_base_t::init(int pio_index) {
+  _pio_index = pio_index;
+  auto target_pio = getPioFromIndex(_pio_index);
+  if (target_pio == nullptr) { return false; }
+  auto sm = pio_claim_unused_sm(target_pio, true);
+  if (sm < 0) { return false; }
+  _sm_index = sm;
+  _inited = true;
+  return true;
+}
+
+bool output_pio_base_t::deinit(void) {
+  if (!_inited) { return false; }
+  auto target_pio = getPioFromIndex(_pio_index);
+  pio_remove_program(target_pio, &_program, _pg_offset);
+  pio_sm_unclaim(target_pio, _sm_index);
   _inited = false;
+  return true;
+}
+
+void output_pio_base_t::start(void) {
+  if (!_inited) { return; }
+  auto target_pio = getPioFromIndex(_pio_index);
+  pio_sm_set_enabled(target_pio, _sm_index, true);
+}
+
+void output_pio_base_t::stop(void)
+{
+  if (!_inited) { return; }
+  auto target_pio = getPioFromIndex(_pio_index);
+  pio_sm_set_enabled(target_pio, _sm_index, false);
+}
+
+uint32_t output_pio_base_t::getDreq(void) const
+{
+  if (!_inited) { return 0; }
+  uint32_t sm = _sm_index;
+  switch (_pio_index) {
+#ifdef DREQ_PIO0_TX0
+  case 0: return DREQ_PIO0_TX0 + sm;
+#endif
+#ifdef DREQ_PIO1_TX0
+  case 1: return DREQ_PIO1_TX0 + sm;
+#endif
+#ifdef DREQ_PIO2_TX0
+  case 2: return DREQ_PIO2_TX0 + sm;
+#endif
+#ifdef DREQ_PIO3_TX0
+  case 3: return DREQ_PIO3_TX0 + sm;
+#endif
+  default: return sm;
+  }
+}
+
+volatile void* output_pio_base_t::getWriteAddr(void) const
+{
+  if (!_inited) { return nullptr; }
+  auto target_pio = getPioFromIndex(_pio_index);
+  return target_pio ? &(target_pio->txf[_sm_index]) : nullptr;
+}
+
+//--------------------------------------------------------------------------------
+
+bool output_pio_simple_t::init(const config_t& config)
+{
+  if (_inited) { return false; }
   if (config.pin_bits > 3) { return false; }
+  if (!output_pio_base_t::init(config.pio_index)) {
+    return false;
+  }
   _config = config;
 
   /// 現在のCPUクロックを取得する
@@ -60,7 +129,7 @@ bool simple_output_pio_t::init(const config_t& config)
     float f_div = (float)cpu_clock / (config.freq_hz * (1 + cycle) / 256.0f);
     uint32_t div256 = roundf(f_div);
     if (div256 < 256) { break; }
-    if (div256 > 65535) { continue; }
+    if (div256 > 65535) { div256 = 65535; }
     float frac = fabsf(f_div - (float)div256);
     if (frac < best_frac) {
       best_frac = frac;
@@ -104,63 +173,77 @@ bool simple_output_pio_t::init(const config_t& config)
   for (uint pidx = 0; pidx < pin_count; pidx++) {
     pio_gpio_init(target_pio, pidx + config.pin_num);
   }
-  pio_sm_set_consecutive_pindirs(target_pio, config.sm_index, config.pin_num, pin_count, true);
+  pio_sm_set_consecutive_pindirs(target_pio, _sm_index, config.pin_num, pin_count, true);
 
   /// PIO初期化
-  pio_sm_init(target_pio, config.sm_index, _pg_offset, &c);
+  pio_sm_init(target_pio, _sm_index, _pg_offset, &c);
 
   _inited = true;
   return true;
 }
 
-bool simple_output_pio_t::deinit(void) {
-  if (!_inited) { return false; }
-  auto target_pio = getPioFromIndex(_config.pio_index);
-  pio_remove_program(target_pio, &_program, _pg_offset);
-  pio_sm_unclaim(target_pio, _config.sm_index);
-  _inited = false;
-  return true;
-}
+//--------------------------------------------------------------------------------
 
-void simple_output_pio_t::start(void) {
-  if (!_inited) { return; }
-  auto target_pio = getPioFromIndex(_config.pio_index);
-  pio_sm_set_enabled(target_pio, _config.sm_index, true);
-}
-
-void simple_output_pio_t::stop(void)
+bool output_pio_i2s_t::init(const config_t& config)
 {
-  if (!_inited) { return; }
-  auto target_pio = getPioFromIndex(_config.pio_index);
-  pio_sm_set_enabled(target_pio, _config.sm_index, false);
-}
-
-uint32_t simple_output_pio_t::getDreq(void) const
-{
-  if (!_inited) { return 0; }
-  uint32_t sm = _config.sm_index;
-  switch (_config.pio_index) {
-#ifdef DREQ_PIO0_TX0
-  case 0: return DREQ_PIO0_TX0 + sm;
-#endif
-#ifdef DREQ_PIO1_TX0
-  case 1: return DREQ_PIO1_TX0 + sm;
-#endif
-#ifdef DREQ_PIO2_TX0
-  case 2: return DREQ_PIO2_TX0 + sm;
-#endif
-#ifdef DREQ_PIO3_TX0
-  case 3: return DREQ_PIO3_TX0 + sm;
-#endif
-  default: return sm;
+  if (_inited) { return false; }
+  if (config.bps < 8 || config.bps > 32) { return false; }
+  if (!output_pio_base_t::init(config.pio_index)) {
+    return false;
   }
-}
+  _config = config;
 
-volatile void* simple_output_pio_t::getWriteAddr(void) const
-{
-  if (!_inited) { return nullptr; }
-  auto target_pio = getPioFromIndex(_config.pio_index);
-  return target_pio ? &(target_pio->txf[_config.sm_index]) : nullptr;
+  /// 現在のCPUクロックを取得する
+  uint32_t cpu_clock = getCpuClock();
+
+  /// 現在のCPU速度に基づいて、送信周波数に最も近くなるPIO動作分周比を求める
+  // ビットレート , I2SはLRチャンネルがあるのでbpsを2倍にする
+  float f_div = (float)cpu_clock / (config.freq_hz * (_config.bps * 4) / 256.0f);
+  uint32_t div256 = roundf(f_div);
+
+  static constexpr const uint16_t _pio_instructions[] = {
+    0xa822, 0x7001, 0x1841, 0x7001, 0xb822, 0x6001, 0x0845, 0x6001, };  // LSB justified
+ // 0xa822, 0x6001, 0x0841, 0x7001, 0xb822, 0x7001, 0x1845, 0x6001, };  // Philips standard
+
+  auto target_pio = getPioFromIndex(config.pio_index);
+
+  /// pioに登録するプログラム
+  _program.instructions = _pio_instructions;
+  _program.length = sizeof(_pio_instructions) / sizeof(_pio_instructions[0]);
+  _program.origin = -1;
+
+  _pg_offset = pio_add_program(target_pio, &_program);
+  pio_sm_config c = pio_get_default_sm_config();
+
+  /// 動作速度の設定 (整数成分と 1/256成分に分ける)
+  sm_config_set_clkdiv_int_frac(&c, (uint8_t)(div256 >> 8), (uint8_t)div256);
+
+  // BCLKとLRCKの設定
+  sm_config_set_sideset(&c, 2, false, false);
+  sm_config_set_wrap(&c, _pg_offset, _pg_offset + _program.length - 1);
+
+  sm_config_set_sideset_pins(&c, config.pin_bclk);
+  // sm_config_set_out_shift(&c, false, true, (_config.bps <= 16) ? 2 * _config.bps : _config.bps);
+  sm_config_set_out_shift(&c, false, true, 16);
+
+  sm_config_set_fifo_join(&c, pio_fifo_join::PIO_FIFO_JOIN_TX);
+
+  /// 出力先GPIOの設定
+  pio_gpio_init(target_pio, config.pin_dout);
+  pio_gpio_init(target_pio, config.pin_bclk);
+  pio_gpio_init(target_pio, config.pin_bclk+1);
+  auto pin_count = 1;
+  sm_config_set_out_pins(&c, config.pin_dout, pin_count);
+  pio_sm_set_consecutive_pindirs(target_pio, _sm_index, config.pin_dout, pin_count, true);
+  pio_sm_set_consecutive_pindirs(target_pio, _sm_index, config.pin_bclk, 2, true); // BCLKとLRCKのピン番号は連続している必要がある
+  /// PIO初期化
+  pio_sm_init(target_pio, _sm_index, _pg_offset, &c);
+
+  // Yレジスタにbps-2を設定することで、I2SのPhilipsフォーマットに合わせる
+  pio_sm_exec(target_pio, _sm_index, pio_encode_set(pio_y, _config.bps - 2));
+
+  _inited = true;
+  return true;
 }
 
 //--------------------------------------------------------------------------------
@@ -168,9 +251,9 @@ volatile void* simple_output_pio_t::getWriteAddr(void) const
 /// ISR関数側からDMAインスタンスを特定するために、インスタンスのポインタを配列で管理している。
 /// ISRハンドラ自体をインスタンス別に分け、インスタンスとハンドラを1対1で対応させるようにしている。
 /// これによりISR内から操作対象のインスタンスを特定でき、複数インスタンスの同時使用を可能とした。
-continuous_output_dma_t* _continuous_dma_used_instance[continuous_output_dma_t::continuous_dma_instance_max] = { nullptr };
+output_dma_continuous_t* _continuous_dma_used_instance[output_dma_continuous_t::continuous_dma_instance_max] = { nullptr, nullptr, nullptr, nullptr };
 
-void continuous_output_dma_t::irq_inner(uint_fast8_t num)
+void output_dma_continuous_t::irq_inner(uint_fast8_t num)
 {
 #if defined ( GPIO_DEBUG_PIN )
 gpio_put(GPIO_DEBUG_PIN, 1);
@@ -187,7 +270,7 @@ gpio_put(GPIO_DEBUG_PIN, 0);
 }
 
 /// DMAバッファ作成コールバック関数を呼び出し、DMAバッファを作成する
-void continuous_output_dma_t::make_buffer(uint8_t target_index)
+void output_dma_continuous_t::make_buffer(uint8_t target_index)
 {
   uint_fast8_t loop_bit_mask = ((1 << _config.dma_loop_bits) - 1);
   target_index &= loop_bit_mask;
@@ -209,7 +292,7 @@ void continuous_output_dma_t::make_buffer(uint8_t target_index)
   }
 }
 
-bool continuous_output_dma_t::init(const config_t& config)
+bool output_dma_continuous_t::init(const config_t& config)
 {
   _inited = false;
   if (config.dma_loop_bits == 0 || config.callback_function == nullptr) { return false; }
@@ -229,9 +312,9 @@ gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
 
   _continuous_dma_used_instance[instance_index] = this;
   _config = config;
-  int dma_chan_transfer = dma_claim_unused_channel(true);
+  int dma_chan_transfer = dma_claim_unused_channel(false);
   if (dma_chan_transfer < 0) { return false; }
-  int dma_chan_looping  = dma_claim_unused_channel(true);
+  int dma_chan_looping  = dma_claim_unused_channel(false);
   if (dma_chan_looping < 0)
   {
     dma_channel_unclaim(dma_chan_transfer);
@@ -246,7 +329,8 @@ gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
   { // バッファを出力するためのDMAチャンネル設定
     auto dma_chan_config = dma_channel_get_default_config(dma_chan_transfer);
     channel_config_set_dreq(&dma_chan_config, config.dreq);
-    channel_config_set_transfer_data_size(&dma_chan_config, DMA_SIZE_8); // データは1Byte単位で読み込む
+    channel_config_set_transfer_data_size(&dma_chan_config, (dma_channel_transfer_size)config.dma_transfer_size); // データを何Byte単位で読むか設定
+    channel_config_set_bswap(&dma_chan_config, false); // バイトオーダーの変更は行わない
     channel_config_set_chain_to(&dma_chan_config, _dma_chan_looping); // ループ用のDMAにチェインする
     dma_chan_config.ctrl |= DMA_CH0_CTRL_TRIG_HIGH_PRIORITY_BITS;//   channel_config_set_high_priority(&dma_chan_config, true);
     dma_channel_configure(
@@ -280,16 +364,21 @@ gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
 
     static constexpr void(*irq_handlers[continuous_dma_instance_max])(void) = { irq_handler0, irq_handler1, irq_handler2, irq_handler3 };
 
-    dma_channel_set_irq1_enabled(dma_chan_looping, true);
-    irq_add_shared_handler(DMA_IRQ_1, irq_handlers[instance_index], PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
-    irq_set_enabled(DMA_IRQ_1, true);
+    auto dma_irq = (instance_index & 1) ? DMA_IRQ_1 : DMA_IRQ_0;
+    if (dma_irq == DMA_IRQ_0) {
+      dma_channel_set_irq0_enabled(dma_chan_looping, true);
+    } else {
+      dma_channel_set_irq1_enabled(dma_chan_looping, true);
+    }
+    irq_add_shared_handler(dma_irq, irq_handlers[instance_index], PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+    irq_set_enabled(dma_irq, true);
   }
 
   _inited = true;
   return true;
 }
 
-void continuous_output_dma_t::start(void)
+void output_dma_continuous_t::start(void)
 {
   if (!_inited) { return; }
   // 転送を始める前に最初のデータ要求をしておくことでDMA転送の初回のデータを準備する。
@@ -297,7 +386,7 @@ void continuous_output_dma_t::start(void)
   dma_channel_start(_dma_chan_looping);
 }
 
-void continuous_output_dma_t::stop(void)
+void output_dma_continuous_t::stop(void)
 {
   if (!_inited) { return; }
   dma_channel_abort(_dma_chan_transfer);
@@ -305,63 +394,47 @@ void continuous_output_dma_t::stop(void)
 }
 
 //--------------------------------------------------------------------------------
-
-bool continuous_output_bus_t::init(const config_t& config)
+bool output_bus_continuous_t::init(const config_t& config)
 {
   if (_inited) { return false; }
   _started = false;
-  if (config.dma_count < 2) { return false; }
+  if (config.dma_buf_count < 2) { return false; }
   _config = config;
 
-  auto target_pio = getPioFromIndex(config.pio_index);
-  if (target_pio == nullptr) { return false; }
-  auto sm = pio_claim_unused_sm(target_pio, true);
-  if (sm < 0) { return false; }
-
   /// DMAバッファの作成時に各バッファ長さを4バイト単位にアライメントしておく。
-  uint32_t aligned_len = (config.dma_length + 3) & ~3;
+  uint32_t aligned_len = (config.dma_buf_size + 3) & ~3;
   _aligned_length = aligned_len;
-  _dma_buffer = (uint8_t*)(~3 & (uintptr_t)malloc(4 + aligned_len * config.dma_count));
+  _dma_buffer = (uint8_t*)(~3 & (uintptr_t)malloc(4 + aligned_len * config.dma_buf_count));
   if (_dma_buffer)
-  { /// 出力先PIOの初期化
-    auto cfg_pio = _out_pio.getConfig();
-    cfg_pio.freq_hz = config.freq_hz;
-    cfg_pio.pio_index = config.pio_index;
-    cfg_pio.sm_index = sm;
-    cfg_pio.pin_num = config.pin_num;
-    cfg_pio.pin_bits = config.pin_bits;
-    if (_out_pio.init(cfg_pio))
+  {
+    /// 出力DMAの初期化
+    auto cfg_dma = _cont_dma.getConfig();
+
+    /// 出力先PIOからDMA転送先の情報を取得してセットする
+    cfg_dma.dreq = _config.output_pio->getDreq();
+    cfg_dma.write_addr = _config.output_pio->getWriteAddr();
+
+    /// 出力DMAに用意させるリングバッファの個数は最小の2個とする (1bit = 2個)
+    cfg_dma.dma_loop_bits = 1;
+    cfg_dma.dma_length = config.dma_buf_size >> config.dma_transfer_size;
+    cfg_dma.dma_transfer_size = config.dma_transfer_size;
+
+    /// DMAコールバックを指定
+    cfg_dma.callback_function = continuous_output_dma_callback;
+    cfg_dma.callback_param = this;
+
+    if (_cont_dma.init(cfg_dma))
     {
-      /// PIOが動作できたら次は出力DMAの初期化
-      auto cfg_dma = _cont_dma.getConfig();
-
-      /// 出力先PIOからDMA転送先の情報を取得してセットする
-      cfg_dma.dreq = _out_pio.getDreq();
-      cfg_dma.write_addr = _out_pio.getWriteAddr();
-
-      /// 出力DMAに用意させるリングバッファの個数は最小の2個とする (1bit = 2個)
-      cfg_dma.dma_loop_bits = 1;
-      cfg_dma.dma_length = config.dma_length;
-
-      /// DMAコールバックを指定
-      cfg_dma.callback_function = continuous_output_dma_callback;
-      cfg_dma.callback_param = this;
-
-      if (_cont_dma.init(cfg_dma))
-      {
-        _inited = true;
-        return true;
-      }
-      _out_pio.deinit();
+      _inited = true;
+      return true;
     }
     free(_dma_buffer);
     _dma_buffer = nullptr;
   }
-  pio_sm_unclaim(target_pio, sm);
   return false;
 }
 
-void continuous_output_bus_t::start(void)
+void output_bus_continuous_t::start(void)
 {
   if (!_inited || _started) { return; }
 
@@ -369,35 +442,35 @@ void continuous_output_bus_t::start(void)
   auto len = _aligned_length;
   /// 出力DMAリングバッファが2個分のバッファを使用しているので、初回のDMAデータ準備は2個分減らしておく。
   /// ※ ここで2個減らしておかないと、DMA転送の最中のバッファをコールバックに渡してしまう可能性が生じるため必ず減らしておく。
-  uint_fast8_t loop_end = _config.dma_count-2;
+  uint_fast8_t loop_end = _config.dma_buf_count - 2;
   for (; dma_index < loop_end; ++dma_index) {
     _config.callback_function(_config.callback_param, (uintptr_t)&_dma_buffer[dma_index * len], len);
   }
   _dma_index = dma_index;
   _started = true;
 
-  _out_pio.start();
+  _config.output_pio->start();
   _cont_dma.start();
 }
 
-void continuous_output_bus_t::stop(void)
+void output_bus_continuous_t::stop(void)
 {
   if (!_inited || !_started) { return; }
   _started = false;
 
-  _out_pio.stop();
+  _config.output_pio->stop();
   _cont_dma.stop();
 }
 
-uint8_t* continuous_output_bus_t::continuous_output_dma_callback(void* cb_param)
+uint8_t* output_bus_continuous_t::continuous_output_dma_callback(void* cb_param)
 {
-  auto me = (continuous_output_bus_t*)cb_param;
+  auto me = (output_bus_continuous_t*)cb_param;
   uint_fast8_t idx = me->_dma_index;
   uint32_t len = me->_aligned_length;
   auto buffer = me->_dma_buffer;
 
   me->_config.callback_function(me->_config.callback_param, (uintptr_t)&buffer[idx * len], len);
-  auto dma_count = me->_config.dma_count;
+  auto dma_count = me->_config.dma_buf_count;
   // 次のDMAバッファを設定する
   if (++idx >= dma_count) { idx = 0; }
   me->_dma_index = idx;
@@ -408,3 +481,4 @@ uint8_t* continuous_output_bus_t::continuous_output_dma_callback(void* cb_param)
 }
 
 //--------------------------------------------------------------------------------
+} // namespace picossci_ntsc

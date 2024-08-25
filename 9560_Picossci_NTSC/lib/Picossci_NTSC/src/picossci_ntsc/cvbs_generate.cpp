@@ -1,15 +1,17 @@
-// #define GPIO_DEBUG_PIN 19
+// #define GPIO_DEBUG_PIN 20
+// #include <hardware/gpio.h>
 
 #include "cvbs_generate.hpp"
 
-#include <hardware/gpio.h>
 #include <math.h>
 #include <string.h>
 
 static constexpr const uint8_t SYNC_LEVEL = 0;
 
+namespace ns_picossci_ntsc
+{
 //--------------------------------------------------------------------------------
-
+  __attribute((optimize("-O3")))
   static uint32_t setup_palette_ntsc_inner(uint32_t rgb, uint_fast8_t diff_level, uint_fast8_t base_level, uint_fast8_t chroma_level)
   {
     uint32_t r = (rgb >> 16) & 0xFF;
@@ -115,6 +117,7 @@ static constexpr const uint8_t SYNC_LEVEL = 0;
     uint32_t blanking_level = spec->blanking_mv * output_level / spec->white_mv;
     // 黄色を基準にバースト信号を生成する
     data->burst_wave[0] = setup_palette_ntsc_inner(0x707000, 0, blanking_level, output_level*3>>2);
+    data->burst_wave[1] = data->burst_wave[0];
     data->blanking_wave = setup_palette_ntsc_inner(0, 0, blanking_level, 0);
   }
 
@@ -162,8 +165,6 @@ static constexpr const cvbs_generate_t::signal_spec_info_t signal_spec_info_list
 
 bool cvbs_generate_t::init(const config_t &config)
 {
-  if (config.dma_count < 2) { return false; }
-
 #if defined ( GPIO_DEBUG_PIN )
 #if __has_include (<FreeRTOS.h>)
 gpio_init(GPIO_DEBUG_PIN);
@@ -176,30 +177,17 @@ gpio_set_dir(GPIO_DEBUG_PIN, GPIO_OUT);
   _config = config;
   auto spec = &signal_spec_info_list[config.signal_type];
   _spec_info = spec;
-
-  _request_index = 0;
-  auto dma_count = config.dma_count;
-
-  auto rawbuf = (uint8_t*)malloc((sizeof(video_request_t) * dma_count));
-  if (rawbuf == nullptr) { return false; }
-
-  _video_request = (video_request_t*)rawbuf;
-
-  for (int i = 0; i < dma_count; ++i) {
-    _video_request[i].scanline = -1;
-    _video_request[i].dma_buffer = 0;
-    _video_request[i].pixel_mode = pixel_mode_t::pixel_mode_max;
-  }
-
   setup_palette_ntsc_base(&_internal_data, spec, config.output_level);
 
-#if __has_include (<FreeRTOS.h>)
-  xTaskCreate((TaskFunction_t)task_dma_buffer, "dmabuf", 4096, this, _config.task_priority, &_task_cvbs);
-#else
-  this->_task_cvbs.start(mbed::callback(task_dma_buffer, this));
-  this->_task_cvbs.set_priority((osPriority_t)_config.task_priority);
-#endif
   return true;
+}
+
+uint8_t cvbs_generate_t::getPixelModeByteSize(pixel_mode_t mode)
+{
+  static constexpr const uint32_t pixel_mode_bytesize[] = {
+    1, 1, 2, 2, 3,
+  };
+  return (mode < pixel_mode_max) ? pixel_mode_bytesize[mode] : 1;
 }
 
 bool cvbs_generate_t::enablePixelMode(pixel_mode_t pixel_mode)
@@ -209,7 +197,7 @@ bool cvbs_generate_t::enablePixelMode(pixel_mode_t pixel_mode)
   if (_internal_data.palettes[pixel_mode] == nullptr) {
     auto pixel_size = getPixelModeByteSize(pixel_mode);
     auto palette_size = (_spec_info->burst_shift_mask == 1) ? 512 : 256;
-    // 4Byteのアラインメントを取るために4Byte分の余白を確保する
+
     _internal_data.palettes[pixel_mode] = (uint32_t*)(~3 & (uintptr_t)malloc(4 + sizeof(uint32_t) * pixel_size * palette_size));
 
     uint32_t black_level = _spec_info->black_mv * _config.output_level / _spec_info->white_mv;
@@ -217,6 +205,7 @@ bool cvbs_generate_t::enablePixelMode(pixel_mode_t pixel_mode)
     void (*setup_palette_tbl[])(uint32_t*, uint32_t, uint32_t, uint_fast8_t) = {
       setup_palette_ntsc_gray,
       setup_palette_ntsc_332,
+      setup_palette_ntsc_565,
       setup_palette_ntsc_565,
     };
     setup_palette_tbl[pixel_mode]( _internal_data.palettes[pixel_mode], black_level, diff_level, _config.chroma_level);
@@ -244,38 +233,10 @@ bool cvbs_generate_t::disablePixelMode(pixel_mode_t pixel_mode)
   return true;
 }
 
-/// DMA転送ISRから呼び出されるコールバック関数
-/// 別タスクで生成しておいたバッファをキューから取り出して返す。
-bool cvbs_generate_t::dma_callback(void* param, uintptr_t dma_buf, size_t dma_buf_len __attribute__((unused)))
-{
-  auto me = (cvbs_generate_t*)param;
-  auto request_index = me->_request_index;
-  me->_video_request[request_index].scanline = -1;
-  auto scanline = me->_scanline;
-  me->_video_request[request_index].dma_buffer = (uint8_t*)dma_buf;
-  me->_video_request[request_index].scanline = scanline;
-  if (++request_index >= me->_config.dma_count) { request_index = 0; }
-  me->_request_index = request_index;
-  /// ここで次回分のリクエストを無効化しておく (データ生成タスクのリングバッファ周回をリクエストが追い越してしまった場合の対策)
-  me->_video_request[request_index].scanline = -1;
-
-  auto scanlines = me->_spec_info->total_scanlines;
-  if ((scanline += 2) >= scanlines) { scanline -= scanlines; }
-  me->_scanline = scanline;
-
-#if __has_include (<FreeRTOS.h>)
-  BaseType_t pxHigherPriorityTaskWoken = false;
-  vTaskNotifyGiveFromISR(me->_task_cvbs, &pxHigherPriorityTaskWoken);
-#else
-  me->_event_flags.set(_FLAG_FROM_ISR);
-#endif
-  return true;
-}
-
 // アセンブラを呼び出すための関数宣言
 extern "C" {
   void cvbs_generate_blit_8bit(uint8_t* d, const uint8_t* d_end, const uint8_t* s, const uint32_t* p, uint32_t scale, int32_t diff);
-  void cvbs_generate_blit_16bit(uint8_t* d, const uint8_t* d_end, const uint16_t* s, const uint32_t* p, uint32_t scale, int32_t diff);
+  void cvbs_generate_blit_16bit(uint8_t* d, const uint8_t* d_end, const uint16_t* s, const uint32_t* p, uint32_t scale, int32_t diff, bool swap);
 };
 
 // C版の関数をweakで定義しておく
@@ -325,8 +286,11 @@ LABEL_ALIGN0:
 }
 
 __attribute((weak))
-void cvbs_generate_blit_16bit(uint8_t* __restrict d, const uint8_t* __restrict d_end, const uint16_t* s, const uint32_t* p, uint32_t scale, int32_t diff)
+void cvbs_generate_blit_16bit(uint8_t* __restrict d, const uint8_t* __restrict d_end, const uint16_t* s, const uint32_t* p, uint32_t scale, int32_t diff, bool swap)
 {
+  auto pl = p;
+  if (swap) { p += 256; }
+  else { pl += 256; }
   do
   {
     uint16_t pixel_c = s[0];
@@ -339,7 +303,7 @@ void cvbs_generate_blit_16bit(uint8_t* __restrict d, const uint8_t* __restrict d
     } while (diff < 0);
     uint32_t color = p[pixel_c & 255];
     pixel_c >>= 8;
-    color += p[pixel_c + 256];
+    color += pl[pixel_c];
 
     // アラインメント端数分の処理
     uint32_t align = (((uint32_t)d) << 30) >> 30;
@@ -371,22 +335,20 @@ LABEL_ALIGN0:
   } while (d < d_end);
 }
 
-void cvbs_generate_t::make_linebuffer(uint8_t* buf, uint16_t scanline)
+int cvbs_generate_t::make_sync(uint8_t* buf, uint16_t scanline, uint16_t buffer_cycle, bool odd_even)
 {
   // インターレース込みでの走査線位置を取得;
-  int y = scanline * 2;
+  int y = scanline << 1;
   // インターレースを外した走査線位置に変換する (奇数フィールドの場合に走査線位置が0基準になるように変換する)
   bool odd_field = y >= _spec_info->total_scanlines;
   if (odd_field) { y -= _spec_info->total_scanlines; }
 
-  _burst_shift = _burst_shift ^ _spec_info->burst_shift_mask;
-
   int sync_limit = _spec_info->vsync_start + _spec_info->vsync_end;
-  if (y >= _spec_info->vsync_start + _spec_info->vsync_end)
+
+  if (y >= sync_limit)
   {
     /// DMAリングバッファの前の周回でデータ消去が済んでいなければ処理
-    bool need_clear = ((y - sync_limit) < (_config.dma_count << 2));
-    if (need_clear)
+    if ((y - sync_limit) <= (buffer_cycle << 1))
     {
       auto l = _spec_info->hsync_short;
       auto r = _spec_info->active_start;
@@ -396,7 +358,7 @@ void cvbs_generate_t::make_linebuffer(uint8_t* buf, uint16_t scanline)
       memset(&buf[l], _internal_data.black_wave, _spec_info->display_width);
 
       /// バースト信号の付与
-      uint32_t burst_data = _internal_data.burst_wave[_burst_shift & 1];
+      uint32_t burst_data = _internal_data.burst_wave[odd_even];
       size_t burst_start = _spec_info->burst_start & ~3;
       auto b32 = (uint32_t*)(((uintptr_t)&buf[burst_start]) & ~3);
       for (int i = 0; i < _spec_info->burst_cycle; ++i)
@@ -404,83 +366,10 @@ void cvbs_generate_t::make_linebuffer(uint8_t* buf, uint16_t scanline)
         b32[i] = burst_data;
       }
     }
-
-    // VSYNC位置を越えていれば表示内容を作成する
-    if (y >= _spec_info->vsync_lines*2)
-    {
-      y -= _spec_info->vsync_lines*2;
-
-    /// 作画処理
-      _line_image_info.callback_param = _config.callback_param;
-      _config.callback_requestImage(&_line_image_info, y);
-
-      auto b = &buf[_spec_info->active_start];
-      if (_line_image_info.image != nullptr && _line_image_info.scale != 0) {
-        uint32_t initial = 0;
-        int_fast32_t dst_right = (_line_image_info.length * _line_image_info.scale) >> 8;
-        int_fast16_t dst_left = _line_image_info.x_offset;
-        if (dst_left) // 出力先のオフセットを反映する
-        {
-          dst_right += dst_left;
-          if (dst_left < 0)
-          { // マイナスオフセットを反映する
-            initial = -dst_left;
-            dst_left = 0;
-          }
-        }
-        int limit = (int)_spec_info->display_width;
-        if (dst_right > limit) { dst_right = limit; }
-        if (dst_right > dst_left) {
-          auto pixel_mode = _line_image_info.pixel_mode;
-          auto palette = _internal_data.palettes[pixel_mode];
-          if (palette == nullptr) {
-            enablePixelMode(pixel_mode);
-            palette = _internal_data.palettes[pixel_mode];
-          }
-          if (palette != nullptr) {
-
-            int32_t diff = (dst_left - dst_right) << 8;
-            auto scale = _line_image_info.scale;
-            int sidx = 0;
-            if (initial) {
-              auto in8 = initial << 8;
-              int s_add = in8 / scale;
-              diff += s_add * scale - in8;
-              sidx += s_add;
-            }
-#if defined ( GPIO_DEBUG_PIN )
-gpio_put(GPIO_DEBUG_PIN, 1);
-#endif
-            if (getPixelModeByteSize(pixel_mode) == 1) {
-              cvbs_generate_blit_8bit(&b[dst_left], &b[dst_right], &((const uint8_t*)_line_image_info.image)[sidx], palette, scale, diff);
-            } else
-            if (getPixelModeByteSize(pixel_mode) == 2) {
-              cvbs_generate_blit_16bit(&b[dst_left], &b[dst_right], &((const uint16_t*)_line_image_info.image)[sidx], palette, scale, diff);
-            }
-#if defined ( GPIO_DEBUG_PIN )
-gpio_put(GPIO_DEBUG_PIN, 0);
-#endif
-          }
-          memset(&b[limit], _internal_data.black_wave, 8);
-          if (dst_left) {
-            memset(b, _internal_data.black_wave, dst_left);
-          }
-        } else {
-          dst_right = 0;
-        }
-        auto right_space = limit - dst_right;
-        if (right_space > 0) {
-          memset(&b[dst_right], _internal_data.black_wave, right_space);
-        }
-      } else {
-        auto b = &buf[_spec_info->active_start];
-        memset((uint16_t*)b, _internal_data.blanking_wave, _spec_info->display_width);
-      }
-    }
   }
   else
   {
-    auto half_width = _spec_info->scanline_width / 2;
+    auto half_width = _spec_info->scanline_width >> 1;
     for (int j = 0; j < 2; ++j)
     {
       int sink_index = y + j;
@@ -494,31 +383,75 @@ gpio_put(GPIO_DEBUG_PIN, 0);
       memset(b, SYNC_LEVEL, sink_len);
     }
   }
+  y -= (_spec_info->vsync_lines << 1);
+  if (y >= _spec_info->display_height) { y -= _spec_info->total_scanlines; }
+  return y;
 }
 
-void cvbs_generate_t::task_dma_buffer(cvbs_generate_t* me)
+void cvbs_generate_t::make_scanline(uint8_t* dst, const void* image, size_t pixel_count)
 {
-  uint_fast8_t reqidx = 0;
-  for (;;) {
-#if __has_include (<FreeRTOS.h>)
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-#else
-    me->_event_flags.wait_all(_FLAG_FROM_ISR, osWaitForever);
-#endif
-    int16_t scanline;
-    while ((scanline = me->_video_request[reqidx].scanline) >= 0)
+  auto b = &dst[_spec_info->active_start];
+  if (image != nullptr && _x_scale != 0) {
+    uint32_t initial = 0;
+    int_fast32_t dst_right = (pixel_count * _x_scale) >> 8;
+    int_fast16_t dst_left = _x_offset;
+    if (dst_left) // 出力先のオフセットを反映する
     {
-      /// リクエスト情報からバッファのアドレスと走査線番号を得る
-      auto buf = me->_video_request[reqidx].dma_buffer;
-      me->_video_request[reqidx].scanline = -1;
-      if (++reqidx >= me->_config.dma_count) { reqidx = 0; }
-      // 一度のDMAバッファに走査線2本分のデータを用意する
-      // 1本目
-      me->make_linebuffer(buf, scanline);
-      auto spec = me->getSignalSpec();
-      if (++scanline >= spec->total_scanlines) { scanline -= spec->total_scanlines; }
-      // 2本目
-      me->make_linebuffer(&buf[spec->scanline_width], scanline);
+      dst_right += dst_left;
+      if (dst_left < 0)
+      { // マイナスオフセットを反映する
+        initial = -dst_left;
+        dst_left = 0;
+      }
     }
+    int limit = (int)_spec_info->display_width;
+    if (dst_right > limit) { dst_right = limit; }
+    if (dst_right > dst_left) {
+      auto pixel_mode = _pixel_mode;
+      auto palette = _internal_data.palettes[pixel_mode];
+      if (palette == nullptr) {
+        enablePixelMode(pixel_mode);
+        palette = _internal_data.palettes[pixel_mode];
+      }
+      if (palette != nullptr) {
+
+        int32_t diff = (dst_left - dst_right) << 8;
+        auto scale = _x_scale;
+        int sidx = 0;
+        if (initial) {
+          auto in8 = initial << 8;
+          int s_add = in8 / scale;
+          diff += s_add * scale - in8;
+          sidx += s_add;
+        }
+#if defined ( GPIO_DEBUG_PIN )
+gpio_put(GPIO_DEBUG_PIN, 1);
+#endif
+        if (getPixelModeByteSize(pixel_mode) == 1) {
+          cvbs_generate_blit_8bit(&b[dst_left], &b[dst_right], &((const uint8_t*)image)[sidx], palette, scale, diff);
+        } else
+        if (getPixelModeByteSize(pixel_mode) == 2) {
+          cvbs_generate_blit_16bit(&b[dst_left], &b[dst_right], &((const uint16_t*)image)[sidx], palette, scale, diff, pixel_mode != pixel_mode_t::pixel_rgb565);
+        }
+#if defined ( GPIO_DEBUG_PIN )
+gpio_put(GPIO_DEBUG_PIN, 0);
+#endif
+      }
+      memset(&b[limit], _internal_data.black_wave, 8);
+      if (dst_left) {
+        memset(b, _internal_data.black_wave, dst_left);
+      }
+    } else {
+      dst_right = 0;
+    }
+    auto right_space = limit - dst_right;
+    if (right_space > 0) {
+      memset(&b[dst_right], _internal_data.black_wave, right_space);
+    }
+  } else {
+    memset((uint16_t*)b, _internal_data.blanking_wave, _spec_info->display_width);
   }
 }
+
+//--------------------------------------------------------------------------------
+} // namespace picossci_ntsc
