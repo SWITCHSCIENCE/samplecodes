@@ -1,6 +1,6 @@
 ## サンプルコード for スイッチサイエンスDRV8311H搭載3相ブラシレスモータードライバモジュール
 
-オープンソースのフィールド指向制御（FOC）ブラリ[Simple FOC](https://docs.simplefoc.com/)を使った[スイッチサイエンスDRV8311H搭載3相ブラシレスモータードライバモジュール](https://www.switch-science.com/products/9877)のサンプルコードです。
+オープンソースのフィールド指向制御（FOC）ライブラリ[Simple FOC](https://docs.simplefoc.com/)を使った[スイッチサイエンスDRV8311H搭載3相ブラシレスモータードライバモジュール](https://www.switch-science.com/products/9877)のサンプルコードです。
 
 - open_loop_velocity_example
   - オープンループ（位置センサーを使わない）の速度制御サンプルです。
