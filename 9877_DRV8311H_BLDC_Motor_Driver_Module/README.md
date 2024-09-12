@@ -12,13 +12,14 @@
 - current_sense_low_side
   - DRV8311Hに内蔵された電流センサを使用して、ブラシレスモーター各相の電流をシリアルプロッターにプロットします。
 - full_control_serial
-  - 磁気角度センサ（MA735）と電流センサを使用したフルモーションコントロールのサンプルです。
+  - [磁気角度センサ（MA735）](https://www.switch-science.com/products/9826)と電流センサを使用したフルモーションコントロールのサンプルです。
   - シリアルコンソールからコマンド指示で自由にブラシレスモーターを制御できます。
   - コマンドの仕様は[こちら](https://docs.simplefoc.com/commander_motor)を参照してください。
 
 ### 動作確認環境
 
 - [スイッチサイエンスDRV8311H搭載3相ブラシレスモータードライバモジュール](https://www.switch-science.com/products/9877)
+- [スイッチサイエンスMA735搭載デジタル磁気角度センサモジュール（ABZ/PWM出力付き）](https://www.switch-science.com/products/9826)
 - [ESPr Developer S3](https://www.switch-science.com/products/8514)
 - [ジンバルモーター](https://www.amazon.co.jp/dp/B089SYW5W3)
 - Arduino IDE 2.3.2
