@@ -66,11 +66,12 @@ public:
   ~DCXDecoder(){};
 
   bool decode(const uint8_t* l1smsg);
-  void printAll(Stream& stream, DCXMessage& r);
-  void printSummary(Stream& stream, DCXMessage& r);
+
+  static void printAll(Stream& stream, DCXMessage& r);
+  static void printSummary(Stream& stream, DCXMessage& r);
+  static void binary_print(Stream& stream, uint32_t dat, int length);
 
   static uint32_t get_bits(const uint8_t* l1smsg, int start_bits, int length);
-  static void binary_print(Stream& stream, uint32_t dat, int length);
   static float calc_latitude_deg(uint32_t latitude);
   static float calc_longitude_deg(uint32_t longitude);
   static float calc_radius(uint32_t a);

@@ -15,7 +15,7 @@ const int rxPin = 19;
 const int txPin = 21;
 #endif
 
-#define DBG_PRINT_SFRBX 1
+#define DBG_PRINT_SFRBX 0
 #define DBG_PRINT_SAT 0
 #define DBG_PRINT_PVT 0
 #define DBG_PRINT_DCX_ALL 0
@@ -100,7 +100,7 @@ void newSFRBX(UBX_RXM_SFRBX_data_t *data) {
       }
       // 災害・危機管理通報サービス（DC Report）のメッセージ内容を表示
       if (mt == 43) {
-        dc_report.SetYear(2024);
+        dc_report.SetYear(2024); // todo
         dc_report.Decode(l1s_msg_buf);
         Serial.println(dc_report.GetReport());
       }

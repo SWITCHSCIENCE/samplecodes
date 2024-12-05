@@ -2738,8 +2738,9 @@ const char* DCXDecoder::get_prefecture_name_ja(uint64_t bit_position) {
 // Guidance Instruction Libraryに対応する避難行動を返す関数
 const char* DCXDecoder::get_guidance_instruction_library_ja(int code) {
   switch (code) {
-    case 0: return "（指示なし）";
+    case 0: return "（未指定）";
     case 1: return "直ちに命を守るための最善の行動を。";
+    case 126: return "これは、DCX のテストです。";
     case 127: return "直ちに命を守るための最善の行動を。";
     case 128: return "ミサイル発射。ミサイル発射。ミサイルが発射されたものとみられます。建物の中、又は地下に避難して下さい。";
     case 129: return "ミサイル通過。ミサイル通過。先程のミサイルは通過したものとみられます。避難の呼びかけを解除します。不審なものには決して近寄らず直ちに警察や消防などに連絡して下さい。";
@@ -2750,6 +2751,7 @@ const char* DCXDecoder::get_guidance_instruction_library_ja(int code) {
     case 134: return "ミサイル落下。ミサイル落下。ミサイルが、周辺に落下したものとみられます。続報を伝達しますので、引き続き屋内に避難して下さい。";
     case 135: return "先程のミサイルは、我が国には落下しないものとみられます。避難の呼びかけを解除します。";
     case 136: return "これは、J アラートのテストです。";
+    case 255: return "直ちに命を守るための最善の行動を。";
     case 256: return "留まれ。";
     case 257: return "留まれ。頑丈なものの下/中。";
     case 258: return "留まれ。3階以上。";

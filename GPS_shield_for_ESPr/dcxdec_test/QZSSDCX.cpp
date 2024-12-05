@@ -138,18 +138,6 @@ uint32_t DCXDecoder::get_bits(const uint8_t* buf, int start_bits, int length) {
   return result;
 }
 
-void DCXDecoder::binary_print(Stream& stream, uint32_t dat, int length) {
-  dat <<= 32 - length;
-  for (int i = 32 - length; i < 32; i++) {
-    if (dat & 0x80000000) {
-      stream.print("1");
-    } else {
-      stream.print("0");
-    }
-    dat <<= 1;
-  }
-}
-
 // A12
 float DCXDecoder::calc_latitude_deg(uint32_t latitude) {
   return -90.0f + (180.0f * (float)latitude) / 65535.0f;
@@ -483,5 +471,17 @@ void DCXDecoder::printSummary(Stream& stream, DCXMessage& r) {
       }
       stream.println();
     }
+  }
+}
+
+void DCXDecoder::binary_print(Stream& stream, uint32_t dat, int length) {
+  dat <<= 32 - length;
+  for (int i = 32 - length; i < 32; i++) {
+    if (dat & 0x80000000) {
+      stream.print("1");
+    } else {
+      stream.print("0");
+    }
+    dat <<= 1;
   }
 }
