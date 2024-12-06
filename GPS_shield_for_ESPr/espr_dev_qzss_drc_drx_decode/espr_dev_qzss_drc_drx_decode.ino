@@ -100,7 +100,7 @@ void newSFRBX(UBX_RXM_SFRBX_data_t *data) {
       }
       // 災害・危機管理通報サービス（DC Report）のメッセージ内容を表示
       if (mt == 43) {
-        dc_report.SetYear(2024); // todo
+        dc_report.SetYear(2024);  // todo
         dc_report.Decode(l1s_msg_buf);
         Serial.println(dc_report.GetReport());
       }
@@ -118,20 +118,24 @@ void newSFRBX(UBX_RXM_SFRBX_data_t *data) {
 
 void newNAVSAT(UBX_NAV_SAT_data_t *data) {
 
-  int nGNSS[7] = { 0 };
+#define NUM_GNSS 7
+  int nGNSS[NUM_GNSS] = { 0 };
   for (uint16_t block = 0; block < data->header.numSvs; block++) {
-    if (data->blocks[block].gnssId < 7) {
+    if (data->blocks[block].gnssId < NUM_GNSS) {
       nGNSS[data->blocks[block].gnssId]++;
     }
   }
   Serial.print(F("Satellites: "));
   Serial.print(data->header.numSvs);
-  Serial.print(F(" GPS: "));
-  Serial.print(nGNSS[0]);
-  Serial.print(F(" QZSS: "));
-  Serial.print(nGNSS[5]);
-  Serial.print(F(" GLONASS: "));
-  Serial.print(nGNSS[6]);
+  const char *gnssName[] = { "GPS", "SBAS", "Galileo", "BeiDou", "IMES", "QZSS", "GLONASS" };
+  for (uint16_t i = 0; i < NUM_GNSS; i++) {
+    if (nGNSS[i]) {
+      Serial.print(" ");
+      Serial.print(gnssName[i]);
+      Serial.print(": ");
+      Serial.print(nGNSS[i]);
+    }
+  }
   Serial.println();
 
 #if DBG_PRINT_SAT
