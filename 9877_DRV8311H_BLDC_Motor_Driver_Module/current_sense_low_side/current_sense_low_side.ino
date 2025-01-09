@@ -6,9 +6,8 @@ BLDCMotor motor = BLDCMotor(7, 5.6, 260);  // BDUAV 2206-260KV 14 poles 5.6Ω 26
 // BLDCMotor motor = BLDCMotor(7, 0.368, 1200);  // Surpass Hobby 2204-1200KV 14 poles 0.368Ω 1200KV
 BLDCDriver3PWM driver = BLDCDriver3PWM(17, 18, 47);
 // DRV8311Hのローサイド電流センサを使用
-// 第一引数はmA/VなのでGAINピンの設定（HiZ）に合わせてここでは1V/Aとする
-// 出力が反転しているのでマイナスにする
-LowsideCurrentSense currentSense = LowsideCurrentSense(-1000.0, 4, 5, 6);
+// 第一引数は1AあたりのmV比、GAINピンの設定（HiZ）に合わせてここでは1000とする
+LowsideCurrentSense currentSense = LowsideCurrentSense(1000.0, 4, 5, 6);
 
 // target variable
 float target_velocity = 2 * PI;
