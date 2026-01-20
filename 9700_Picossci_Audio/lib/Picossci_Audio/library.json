@@ -1,0 +1,21 @@
+{
+  "name": "Picossci_Audio",
+  "description": "I2S Audio driver for Picossci Audio",
+  "keywords": "Picossci,Audio,I2S,RP2350",
+  "authors": {
+    "name": "SWITCHSCIENCE",
+    "url": "https://github.com/SWITCHSCIENCE",
+    "maintainer": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SWITCHSCIENCE/samplecodes/tree/master/9700_Picossci_Audio/"
+  },
+  "version": "1.0.0",
+  "frameworks": ["arduino"],
+  "platforms": ["rp2040", "rp2350"],
+  "headers": "Picossci_Audio.h",
+  "build": {
+    "libArchive": false
+  }
+}
