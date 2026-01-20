@@ -9,7 +9,7 @@
 #include <math.h>
 #include <string.h>
 
-namespace ns_picossci_audio
+namespace ns_picossci_2_audio
 {
 //--------------------------------------------------------------------------------
 
@@ -481,4 +481,4 @@ uint8_t* output_bus_continuous_t::continuous_output_dma_callback(void* cb_param)
 }
 
 //--------------------------------------------------------------------------------
-} // namespace ns_picossci_audio
+} // namespace ns_picossci_2_audio

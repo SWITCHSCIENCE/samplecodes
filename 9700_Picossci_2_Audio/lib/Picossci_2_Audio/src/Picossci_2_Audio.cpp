@@ -1,20 +1,20 @@
-#include "Picossci_Audio.h"
+#include "Picossci_2_Audio.h"
 
 #include <stdlib.h>
 #include <malloc.h>
 
 extern "C" void set_cpu_clock(uint32_t freq_khz);
 
-namespace ns_picossci_audio
+namespace ns_picossci_2_audio
 {
 //--------------------------------------------------------------------------------
 
-  void picossci_audio_t::setCpuClock(uint32_t freq_khz)
+  void picossci_2_audio_t::setCpuClock(uint32_t freq_khz)
   {
     ::set_cpu_clock(freq_khz);
   }
 
-  bool picossci_audio_t::init(const config_t& config)
+  bool picossci_2_audio_t::init(const config_t& config)
   {
     if (_inited) { return true; }
 
@@ -54,13 +54,13 @@ namespace ns_picossci_audio
     return codec_ok;
   }
 
-  bool picossci_audio_t::start(void)
+  bool picossci_2_audio_t::start(void)
   {
     if (!_inited) { return false; }
     return _audio.start();
   }
 
-  bool picossci_audio_t::stop(void)
+  bool picossci_2_audio_t::stop(void)
   {
     if (!_inited) { return false; }
     return _audio.stop();

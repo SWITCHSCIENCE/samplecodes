@@ -2,7 +2,7 @@
 
 #include <hardware/gpio.h>
 
-namespace ns_picossci_audio
+namespace ns_picossci_2_audio
 {
 //--------------------------------------------------------------------------------
 
@@ -53,4 +53,4 @@ void switch_state_t::update(void)
 }
 
 //--------------------------------------------------------------------------------
-} // namespace ns_picossci_audio
+} // namespace ns_picossci_2_audio

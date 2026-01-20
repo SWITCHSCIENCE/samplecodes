@@ -1,9 +1,9 @@
 #include <Arduino.h>
 
-// Picossci Audio ライブラリ
-#include <Picossci_Audio.h>
+// Picossci 2 Audio ライブラリ
+#include <Picossci_2_Audio.h>
 
-static Picossci_Audio picossci_audio;
+static Picossci_2_Audio picossci_2_audio;
 
 // 波形データ構造体
 struct Waveform {
@@ -66,10 +66,10 @@ void setup(void)
   Serial.begin(115200);
 
   // Picossci Audio の初期化 (スイッチも自動的に初期化される)
-  auto cfg = picossci_audio.getConfig();
+  auto cfg = picossci_2_audio.getConfig();
   cfg.volume = g_volume;
 
-  if (!picossci_audio.init(cfg)) {
+  if (!picossci_2_audio.init(cfg)) {
     Serial.println("Picossci Audio init failed.");
   } else {
     Serial.println("Picossci Audio init OK.");
@@ -79,7 +79,7 @@ void setup(void)
     Serial.println("  SW1-2 (GPIO18): Volume Up");
   }
 
-  picossci_audio.start();
+  picossci_2_audio.start();
 
   Serial.printf("Waveform: %s\n", kWaveforms[g_waveform_index].name);
   Serial.printf("Volume: 0x%02X\n", g_volume);
@@ -90,35 +90,35 @@ void loop(void)
   static size_t wave_idx = 0;
 
   // スイッチ状態を更新
-  picossci_audio.updateSwitches();
+  picossci_2_audio.updateSwitches();
 
   // SW1-1: ボリュームダウン (値を増やすと音量が下がる)
-  if (picossci_audio.sw[Picossci_Audio::SW_1].wasPressed()) {
+  if (picossci_2_audio.sw[Picossci_2_Audio::SW_1].wasPressed()) {
     if (g_volume < 0x3F) {
       g_volume++;
-      picossci_audio.setVolume(g_volume);
+      picossci_2_audio.setVolume(g_volume);
       Serial.printf("Volume: 0x%02X (down)\n", g_volume);
     }
   }
 
   // SW1-2: ボリュームアップ (値を減らすと音量が上がる)
-  if (picossci_audio.sw[Picossci_Audio::SW_2].wasPressed()) {
+  if (picossci_2_audio.sw[Picossci_2_Audio::SW_2].wasPressed()) {
     if (g_volume > 0x00) {
       g_volume--;
-      picossci_audio.setVolume(g_volume);
+      picossci_2_audio.setVolume(g_volume);
       Serial.printf("Volume: 0x%02X (up)\n", g_volume);
     }
   }
 
   // SW1-T: 波形切替
-  if (picossci_audio.sw[Picossci_Audio::SW_T].wasPressed()) {
+  if (picossci_2_audio.sw[Picossci_2_Audio::SW_T].wasPressed()) {
     g_waveform_index = (g_waveform_index + 1) % kWaveformCount;
     wave_idx = 0;  // 波形を先頭から再生
     Serial.printf("Waveform: %s\n", kWaveforms[g_waveform_index].name);
   }
 
   // 音声データを生成して出力
-  int remain = (picossci_audio.availableForWrite() >> 1) & ~1;
+  int remain = (picossci_2_audio.availableForWrite() >> 1) & ~1;
   if (remain == 0) {
     delay(1);
     return;
@@ -143,6 +143,6 @@ void loop(void)
     buffer[i + 1] = sample;
   }
 
-  picossci_audio.write(buffer, remain << 1);
+  picossci_2_audio.write(buffer, remain << 1);
 }
 

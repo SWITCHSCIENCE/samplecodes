@@ -1,5 +1,5 @@
-#ifndef PICOSSCI_AUDIO_AUDIO_GENERATE_HPP_
-#define PICOSSCI_AUDIO_AUDIO_GENERATE_HPP_
+#ifndef PICOSSCI_2_AUDIO_AUDIO_GENERATE_HPP_
+#define PICOSSCI_2_AUDIO_AUDIO_GENERATE_HPP_
 
 #if __has_include (<FreeRTOS.h>)
 #include <FreeRTOS.h>
@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-namespace ns_picossci_audio
+namespace ns_picossci_2_audio
 {
 //--------------------------------------------------------------------------------
 
@@ -91,6 +91,6 @@ protected:
 
 };
 //--------------------------------------------------------------------------------
-} // namespace ns_picossci_audio
+} // namespace ns_picossci_2_audio
 
 #endif

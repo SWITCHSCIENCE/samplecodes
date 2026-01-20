@@ -1,9 +1,9 @@
-# Sample codes (Picossci_Audio)
+# Sample codes (Picossci_2_Audio)
 
-Softwares for "Picossci Audio"
+Softwares for "Picossci 2 Audio"
 
 + lib ------------------------------ Arduino用ライブラリの格納ディレクトリ
-   + Picossci_Audio ---------------- このフォルダを Arduinoのライブラリフォルダにコピーして使用できます
+   + Picossci_2_Audio -------------- このフォルダを Arduinoのライブラリフォルダにコピーして使用できます
       + examples ------------------- サンプルコードが格納されているフォルダ
         + Sound
           + main.cpp --------------- I2S音声出力のサンプルコード
@@ -20,12 +20,12 @@ Softwares for "Picossci Audio"
 
 ### Arduino IDEで使用する場合
 
-`/lib/Picossci_Audio` フォルダを Arduino のライブラリフォルダにコピーしてご利用ください。
+`/lib/Picossci_2_Audio` フォルダを Arduino のライブラリフォルダにコピーしてご利用ください。
 
 
 ### PlatformIO で使用する場合
 
-必要に応じてご自身のプロジェクトフォルダに `/lib/Picossci_Audio` をコピーしてご利用ください。
+必要に応じてご自身のプロジェクトフォルダに `/lib/Picossci_2_Audio` をコピーしてご利用ください。
 
 なお、このフォルダをそのまま VisualStudioCode で開くことで、サンプルコードをビルドして試すことができます。
 

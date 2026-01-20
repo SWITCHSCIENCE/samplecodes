@@ -1,10 +1,10 @@
-#ifndef PICOSSCI_AUDIO_MAX9850_HPP_
-#define PICOSSCI_AUDIO_MAX9850_HPP_
+#ifndef PICOSSCI_2_AUDIO_MAX9850_HPP_
+#define PICOSSCI_2_AUDIO_MAX9850_HPP_
 
 #include <stdint.h>
 #include <Wire.h>
 
-namespace ns_picossci_audio
+namespace ns_picossci_2_audio
 {
 //--------------------------------------------------------------------------------
 
@@ -79,6 +79,6 @@ protected:
 };
 
 //--------------------------------------------------------------------------------
-} // namespace ns_picossci_audio
+} // namespace ns_picossci_2_audio
 
 #endif

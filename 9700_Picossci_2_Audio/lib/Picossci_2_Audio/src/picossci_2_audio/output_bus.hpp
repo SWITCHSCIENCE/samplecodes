@@ -1,12 +1,12 @@
-#ifndef PICOSSCI_AUDIO_OUTPUT_BUS_RP2040_HPP_
-#define PICOSSCI_AUDIO_OUTPUT_BUS_RP2040_HPP_
+#ifndef PICOSSCI_2_AUDIO_OUTPUT_BUS_RP2040_HPP_
+#define PICOSSCI_2_AUDIO_OUTPUT_BUS_RP2040_HPP_
 
 #include <stdint.h>
 #include <stddef.h>
 
 #include <hardware/pio.h>
 
-namespace ns_picossci_audio
+namespace ns_picossci_2_audio
 {
 //--------------------------------------------------------------------------------
 class output_pio_base_t
@@ -211,6 +211,6 @@ protected:
 };
 
 //--------------------------------------------------------------------------------
-} // namespace ns_picossci_audio
+} // namespace ns_picossci_2_audio
 
 #endif

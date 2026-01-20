@@ -1,9 +1,9 @@
 #include <Arduino.h>
 
-// Picossci Audio ライブラリ
-#include <Picossci_Audio.h>
+// Picossci 2 Audio ライブラリ
+#include <Picossci_2_Audio.h>
 
-static Picossci_Audio picossci_audio;
+static Picossci_2_Audio picossci_2_audio;
 
 // 8bit 44100Hz モノラル波形データ
 extern const uint8_t wav_8bit_44100[46000];
@@ -18,17 +18,17 @@ void setup(void)
 
   // Picossci Audio の初期化
   // 波形データが 44100Hz なのでサンプリングレートを合わせる
-  auto cfg = picossci_audio.getConfig();
+  auto cfg = picossci_2_audio.getConfig();
   cfg.freq_hz = 44100;
 
-  if (!picossci_audio.init(cfg)) {
+  if (!picossci_2_audio.init(cfg)) {
     Serial.println("Picossci Audio init failed.");
   } else {
     Serial.println("Picossci Audio init OK.");
     Serial.println("Playing 8bit 44100Hz wave data...");
   }
 
-  picossci_audio.start();
+  picossci_2_audio.start();
 }
 
 void loop(void)
@@ -36,7 +36,7 @@ void loop(void)
   // 音データの書込み可能なバッファサイズを取得
   // バイト数が返ってくるので、int16_t型のサンプル数に変換するため半分にする
   // ステレオで書き込みたいので奇数分は捨てる
-  int remain = (picossci_audio.availableForWrite() >> 1) & ~1;
+  int remain = (picossci_2_audio.availableForWrite() >> 1) & ~1;
   if (remain == 0) {
     delay(1);
     return;
@@ -65,7 +65,7 @@ void loop(void)
 
   // 音データを書き込み
   // サンプル数をバイト数に変換するため remain を2倍する
-  picossci_audio.write(buffer, remain << 1);
+  picossci_2_audio.write(buffer, remain << 1);
 }
 
 

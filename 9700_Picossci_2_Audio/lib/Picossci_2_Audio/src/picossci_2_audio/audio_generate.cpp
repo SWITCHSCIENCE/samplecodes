@@ -6,7 +6,7 @@
 #include <math.h>
 #include <string.h>
 
-namespace ns_picossci_audio
+namespace ns_picossci_2_audio
 {
 //--------------------------------------------------------------------------------
 
@@ -149,4 +149,4 @@ size_t audio_generate_t::write(const void* buf, size_t data_bytes)
 }
 
 //--------------------------------------------------------------------------------
-} // namespace ns_picossci_audio
+} // namespace ns_picossci_2_audio

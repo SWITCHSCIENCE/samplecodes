@@ -1,10 +1,10 @@
-#ifndef PICOSSCI_AUDIO_HPP_
-#define PICOSSCI_AUDIO_HPP_
+#ifndef PICOSSCI_2_AUDIO_HPP_
+#define PICOSSCI_2_AUDIO_HPP_
 
-#include "picossci_audio/audio_generate.hpp"
-#include "picossci_audio/output_bus.hpp"
-#include "picossci_audio/max9850.hpp"
-#include "picossci_audio/switch_input.hpp"
+#include "picossci_2_audio/audio_generate.hpp"
+#include "picossci_2_audio/output_bus.hpp"
+#include "picossci_2_audio/max9850.hpp"
+#include "picossci_2_audio/switch_input.hpp"
 
 #if __has_include (<FreeRTOS.h>)
 #include <FreeRTOS.h>
@@ -13,7 +13,7 @@
 #include <mbed.h>
 #endif
 
-namespace ns_picossci_audio
+namespace ns_picossci_2_audio
 {
   class i2s_audio_t
   {
@@ -74,10 +74,10 @@ namespace ns_picossci_audio
     audio_generate_t _audio_gen;
   };
 
-  class picossci_audio_t
+  class picossci_2_audio_t
   {
   public:
-    using switch_state_t = ns_picossci_audio::switch_state_t;
+    using switch_state_t = ns_picossci_2_audio::switch_state_t;
 
     /// スイッチ数
     static constexpr uint8_t SW_COUNT = 3;
@@ -166,17 +166,17 @@ namespace ns_picossci_audio
 
     static void setCpuClock(uint32_t freq_khz);
 
-    using audio_generate_t = ns_picossci_audio::audio_generate_t;
-    using max9850_t = ns_picossci_audio::max9850_t;
+    using audio_generate_t = ns_picossci_2_audio::audio_generate_t;
+    using max9850_t = ns_picossci_2_audio::max9850_t;
 
   protected:
     config_t _config;
-    ns_picossci_audio::i2s_audio_t _audio;
-    ns_picossci_audio::max9850_t _codec;
+    ns_picossci_2_audio::i2s_audio_t _audio;
+    ns_picossci_2_audio::max9850_t _codec;
     bool _inited = false;
   };
 }
 
-using Picossci_Audio = ns_picossci_audio::picossci_audio_t;
+using Picossci_2_Audio = ns_picossci_2_audio::picossci_2_audio_t;
 
 #endif

@@ -1,6 +1,6 @@
 #include "max9850.hpp"
 
-namespace ns_picossci_audio
+namespace ns_picossci_2_audio
 {
 //--------------------------------------------------------------------------------
 
@@ -99,4 +99,4 @@ bool max9850_t::setMute(bool mute)
 }
 
 //--------------------------------------------------------------------------------
-} // namespace ns_picossci_audio
+} // namespace ns_picossci_2_audio
