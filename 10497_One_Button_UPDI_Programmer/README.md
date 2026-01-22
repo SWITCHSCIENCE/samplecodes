@@ -1,7 +1,7 @@
 # One Button UPDI Programmer
 
 Raspberry Piを使用して、ボタンひとつでAVRマイコン（tinyAVR 0/1/2シリーズ等）へのUPDI書き込みを行うためのサンプルコードおよびセットアップ手順です。
-動作確認にはRaspberry Pi Zero 2 W(Raspberry Pi OS)を使用し、サンプルプログラムではATtiny1616をターゲットマイコンとしています。
+動作確認にはRaspberry Pi Zero 2 W(Raspberry Pi OS 64-bit)を使用し、サンプルプログラムではATtiny1616をターゲットマイコンとしています。
 
 ---
 
@@ -79,14 +79,17 @@ sudo reboot
 
 #### uvのインストールとパス設定
 ```bash
-curl -LsSf [https://astral.sh/uv/install.sh](https://astral.sh/uv/install.sh) | sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
 source $HOME/.local/bin/env
 ```
 
 #### リポジトリの準備
 ```bash
-curl 後で修正
-cd One_Button_UPDI_Programmer/
+
+git clone --filter=blob:none --sparse https://github.com/SWITCHSCIENCE/samplecodes.git
+cd samplecodes
+git sparse-checkout set 10497_One_Button_UPDI_Programmer
+cd 10497_One_Button_UPDI_Programmer
 ```
 
 #### システムPythonを利用したプロジェクト初期化
@@ -142,7 +145,7 @@ After=network.target
 # プログラムがあるディレクトリを作業ディレクトリに指定
 WorkingDirectory=/home/pi/One_Button_UPDI_Programmer
 # 仮想環境内のPythonパスを直接指定して実行
-ExecStart=/home/pi/One_Button_UPDI_Programmer/.venv/bin/python main.py
+ExecStart=/home/pi/samplecodes/10497_One_Button_UPDI_Programmer/.venv/bin/python main.py
 # 実行ユーザーを指定
 User=pi
 # クラッシュした時に自動再起動する設定
@@ -164,7 +167,29 @@ sudo systemctl enable one_button_updi_programmer.service
 sudo systemctl start one_button_updi_programmer.service
 ```
 
-### 4. 状態確認とログ
+### 電源操作の設定
+
+### 1. GPIOボタンによるシャットダウン設定
+GPIO 26番ピンに接続された物理ボタンを、3秒長押しでシャットダウンするように設定します。
+
+```bash
+sudo nano /boot/firmware/config.txt
+```
+
+ファイルの最終行に以下を追記します：
+```text
+dtoverlay=gpio-shutdown,gpio_pin=26,active_low=1,gpio_pull=up,debounce=3000
+```
+
+### 2. UIポップアップの無効化（1回で電源オフにする）
+OS標準の電源メニュー表示（gtk-nop）を無効化し、1回の操作でシャットダウンできるようにします。
+
+```bash
+sudo mv /etc/xdg/autostart/pwrkey.desktop /etc/xdg/autostart/pwrkey.desktop.disabled
+sudo reboot
+```
+
+### 状態確認とログ
 ```bash
 # 動作ステータスの確認
 sudo systemctl status one_button_updi_programmer.service
@@ -174,6 +199,7 @@ journalctl -u one_button_updi_programmer.service -f
 ```
 
 ---
+
 
 ## 参考リンク
 - [uvでシステムPythonを優先的に利用する設定について (Zenn)](https://zenn.dev/thorie/scraps/0666a8b384f91e)
