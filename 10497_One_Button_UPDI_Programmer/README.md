@@ -1,7 +1,10 @@
 # One Button UPDI Programmer
 
 Raspberry Piを使用して、ボタンひとつでAVRマイコン（tinyAVR 0/1/2シリーズ等）へのUPDI書き込みを行うためのサンプルコードおよびセットアップ手順です。
-動作確認にはRaspberry Pi Zero 2 W(Raspberry Pi OS 64-bit)を使用し、サンプルプログラムではATtiny1616をターゲットマイコンとしています。
+
+動作確認にはRaspberry Pi Zero 2 W(Raspberry Pi OS 64-bit)を使用し、サンプルプログラム(One_Button_UPDI_Programmer_Demo.hex)ではATtiny1616をターゲットマイコンとしています。
+
+One_Button_UPDI_Programmer_Demo.hexはPIN_PA4に繋がったNeopixelを点灯するプログラムとなっています。
 
 ---
 
@@ -9,7 +12,7 @@ Raspberry Piを使用して、ボタンひとつでAVRマイコン（tinyAVR 0/1
 
 書き込みにはMICROCHIP社のpymcuprogを使用しています。
 pymcuprogの詳細は下記リポジトリをご参照ください。
-- [pymcuprog (github)](https://github.com/microchip-pic-avr-tools/pymcuprog)
+- <p><a href="https://github.com/microchip-pic-avr-tools/pymcuprog" target="_blank">pymcuprog (github)</a></p>
 
 書き込みに使用するファイルはhexディレクトリ内に配置してください。
 複数ファイル配置可能です。
@@ -22,6 +25,28 @@ LEDの色は以下の状態を表しています。
 - 赤：書き込みエラー
 
 合わせて、書き込み完了時と書き込みエラー時にはそれぞれの状態を表すビープ音が鳴ります。
+
+またmain.pyで指定しているATtiny1616のヒューズビットは以下の設定になっています。
+
+## ATtiny1616 Fuse Settings (0x001280 - 0x001288)
+
+| Address | Register | Value | Description |
+|:---|:---|:---:|:---|
+| 0x00 | **WDTCFG** | `00` | WDT Disabled |
+| 0x01 | **BODCFG** | `00` | BOD Disabled |
+| 0x02 | **OSCCFG** | `02` | **20MHz** Internal Osc |
+| 0x03 | (Reserved) | `FF` | - |
+| 0x04 | **TCD0CFG** | `00` | Default |
+| 0x05 | **SYSCFG0** | **`F6`** | **UPDI Pin Enabled** / EEPROM Retained |
+| 0x06 | **SYSCFG1** | `04` | SUT: 4ms |
+| 0x07 | **APPEND** | `00` | No Append Section |
+| 0x08 | **BOOTEND** | `00` | No Boot Section |
+
+---
+
+### ⚠️ SYSCFG0 Critical Note
+`SYSCFG0` の値 **`F6`** は、PA0ピンを **UPDIモード** として動作させます。
+もし `RSTPINCFG` を変更して **GPIO/RESETモード** にすると、本プログラマーでは書き込み不能（要12Vプログラマ）になるため注意してください。
 
 ---
 
@@ -113,6 +138,11 @@ uv pip install pymcuprog
 
 ---
 
+#### HEXファイルの配置仕様
+書き込みを行うHEXファイルは、事前に`hex`ディレクトリ内へ格納してください。
+
+複数のHEXファイルを配置して実行することが可能ですが、書き込みプログラムの仕様上、ヒューズビット設定は一括で適用されます。したがって、**配置されたすべてのファイルに対して一律のヒューズビットが書き込まれます。**
+
 ## 使い方
 
 仮想環境が有効な状態で、以下のコマンドを実行することでプログラムが起動します。
@@ -120,6 +150,8 @@ uv pip install pymcuprog
 ```bash
 python main.py
 ```
+
+LCD左側のスイッチで書き込みたいhexファイルを選択し、その後右側にある緑のスイッチを押すことで書き込みが開始します。
 
 ---
 
@@ -136,14 +168,14 @@ sudo nano /etc/systemd/system/one_button_updi_programmer.service
 以下の内容を貼り付けて保存します。
 ※ユーザー名が `pi` 以外の場合は、適宜書き換えてください。
 
-```ini
+```one_button_updi_programmer.service
 [Unit]
 Description=One Button UPDI Programmer Service
 After=network.target
 
 [Service]
 # プログラムがあるディレクトリを作業ディレクトリに指定
-WorkingDirectory=/home/pi/One_Button_UPDI_Programmer
+WorkingDirectory=/home/pi/samplecodes/10497_One_Button_UPDI_Programmer
 # 仮想環境内のPythonパスを直接指定して実行
 ExecStart=/home/pi/samplecodes/10497_One_Button_UPDI_Programmer/.venv/bin/python main.py
 # 実行ユーザーを指定
@@ -199,7 +231,3 @@ journalctl -u one_button_updi_programmer.service -f
 ```
 
 ---
-
-
-## 参考リンク
-- [uvでシステムPythonを優先的に利用する設定について (Zenn)](https://zenn.dev/thorie/scraps/0666a8b384f91e)
