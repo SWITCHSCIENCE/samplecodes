@@ -20,8 +20,7 @@ Softwares for "Picossci 2 Audio"
 
 ### Arduino IDEで使用する場合
 
-`/lib/Picossci_2_Audio` フォルダを Arduino のライブラリフォルダにコピーしてご利用ください。
-
+`/lib/Picossci_2_Audio` フォルダを Arduino のライブラリフォルダにコピーしてご利用ください。また、Arduino IDEの\[ツール\] → \[Operating System\]で「FreeRTOS SMP」を選択してからコンパイルしてください。
 
 ### PlatformIO で使用する場合
 
